@@ -1,2 +1,4 @@
 secrets.json
 *.pptx
+__pycache__
+.mypy_cache
