@@ -1,0 +1,173 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta content="width=device-width, initial-scale=1" name="viewport" />
+<style>
+	@font-face { font-family: Inter; font-weight: 400; src: url("https://albertttan.github.io/daily-bulletin/files/Inter-Regular.ttf") format("truetype"); }
+	@font-face { font-family: Inter; font-weight: 700; src: url("https://albertttan.github.io/daily-bulletin/files/Inter-Bold.ttf") format("truetype"); }
+	@font-face { font-family: "Noto Sans SC"; font-weight: 400; src: url("https://albertttan.github.io/daily-bulletin/files/NotoSansSC-Regular.otf") format("opentype"); }
+	@font-face { font-family: "Noto Sans SC"; font-weight: 700; src: url("https://albertttan.github.io/daily-bulletin/files/NotoSansSC-Bold.otf") format("opentype"); }
+	html { font-family: -apple-system, BlinkMacSystemFont, "SF Pro", Inter, "Noto Sans SC", sans-serif; }
+	body { max-width: 60rem; margin: auto; padding: 1rem; }
+	header { text-align: center; margin-bottom: 3rem; }
+	h2 { padding-top: 1.2rem; }
+	h3, h4, h5, h6 { padding-top: 0.8rem; }
+	span.location { text-decoration: underline; }
+	time { text-decoration: underline; }
+	a:link, a:visited, a:hover, a:active { color: rgb(20, 120, 20); }
+	table { width: 100%; border-collapse: collapse; border: 2px solid rgb(180, 180, 180); font-size: 90%; }
+	caption { margin: 1ex 1em; font-weight: bold; font-size: 105%; }
+	tr.today { background-color: rgb(200, 250, 200); }
+	tr.not-today { color: rgb(150, 150, 150); }
+	td, th { border: 1px solid rgb(150, 150, 150); padding: 0.4rem; }
+	td { text-align: center; min-width: 4.8rem; }
+	th { color: black; background-color: rgb(240, 240, 240); }
+	blockquote { position: relative; margin-left: 40px; }
+	blockquote::before { content: ""; position: absolute; left: -14px; top: 0px; bottom: 0px; width: 2px; background-color: rgb(180, 180, 180); }
+	pre { background-colrgb(69, 11, 11)240); padding: 10px; }
+	code, kbd, var { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: smaller; background-color: rgb(240, 240, 240); }
+	cite { font-size: 90%; font-style: italic; color: rgb(150, 150, 150); }
+	p.ps { font-size: 90%; color: rgb(150, 150, 150); }
+	.ps { color: rgb(150, 150, 150); }
+	.serif, math { font-family: "New York", Baskerville, "Noto Serif SC", serif; }
+	img { max-width: 100%; max-height: 60rem; }
+	img.embed { width: 40%; float: right; margin-left: 10px; margin-bottom: 10px; }
+	hr { border: 1px solid rgb(150, 150, 150); }
+	footer { padding-top: 1rem; text-align: center; }
+</style>
+</head>
+<body dir="auto">
+<title>Daily Bulletin {{stddate}}</title>
+<header>
+	<h1>Daily Bulletin 每日公告</h1>
+	<p><time datetime="{{stddate}}">{{stddate}}</time>, {{weekday_english}}, Day {{day_of_cycle}}</p>
+</header>
+<article>
+	<p>
+	Happy {{weekday_english}}! Thank you for supporting the Daily Bulletin. Please note that this is supplementary to The Week Ahead and is not the canonical source of information, and the Daily Bulletin staff accept no liability for the accuracy or validity. Please fill in the respective forms to <a href="">share inspirations</a>, <a href="">suggest</a>, or <a href="">unsubscribe</a>.
+	<br />
+	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是每周展望的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="">分享灵感</a>、<a href="">提出建议</a>或<a href="">退订</a>。
+	</p>
+	<h2>Community Time 午休时间</h2>
+	<!---->
+	<table>
+		<colgroup><col style="width: 5%"><col style="width: 23.75%"><col style="width: 23.75%"><col style="width: 23.75%"><col style="width: 23.75%"></colgroup>
+		<thead>
+			<tr>
+				<th scope="col">Day</th>
+				<th scope="col">Y9</th>
+				<th scope="col">Y10</th>
+				<th scope="col">Y11</th>
+				<th scope="col">Y12</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr class="today">
+				<th scope="row"></th>
+				<td colspan="2">Assembly</td>
+				<td colspan="2">Assembly</td>
+			</tr>
+			{% for community_time_day in community_time_days[1:] %}
+				<tr class="not-today">
+					<th scope="row">{{ community_time_day[0] }}</th>
+					{% if community_time_day[1] == community_time_day[2] == community_time_day[3] == community_time_day[4] %}
+						<td colspan="4">{{ community_time_day[1] }}</td>
+					{% elif (community_time_day[1] == community_time_day[2]) and (community_time_day[3] == community_time_day[4]) %}
+						<td colspan="2">{{ community_time_day[1] }}</td>
+						<td colspan="2">{{ community_time_day[3] }}</td>
+					{% elif community_time_day[1] == community_time_day[2] %}
+						<td colspan="2">{{ community_time_day[1] }}</td>
+						<td colspan="1">{{ community_time_day[3] }}</td>
+						<td colspan="1">{{ community_time_day[4] }}</td>
+					{% elif community_time_day[3] == community_time_day[4] %}
+						<td colspan="1">{{ community_time_day[1] }}</td>
+						<td colspan="1">{{ community_time_day[2] }}</td>
+						<td colspan="2">{{ community_time_day[3] }}</td>
+					{% else %}
+						<td colspan="1">{{ community_time_day[1] }}</td>
+						<td colspan="1">{{ community_time_day[2] }}</td>
+						<td colspan="1">{{ community_time_day[3] }}</td>
+						<td colspan="1">{{ community_time_day[4] }}</td>
+					{% endif %}
+				</tr>
+			{% endfor %} <!-- TODO -->
+		</tbody>
+	</table>
+	<h2>Delicious Dinings 今日佳肴</h2>
+	<table>
+		<colgroup>
+			<col style="width: 5%">
+			<col style="width: 11.875%;">
+			<col style="width: 11.875%;">
+			<col style="width: 11.875%;">
+			<col style="width: 11.875%;">
+			<col style="width: 11.875%;">
+			<col style="width: 11.875%;">
+			<col style="width: 11.875%;">
+			<col style="width: 11.875%; border-left: 2px solid rgb(180, 180, 180);">
+		</colgroup>
+		<thead>
+			<tr>
+				<th scope="col">Day</th>
+				<th colspan="3" scope="colgroup">Taste of Asia</th>
+				<th colspan="3" scope="colgroup">Eat Global</th>
+				<th scope="col">Revolution</th>
+				<th scope="col">Snack</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr class="today">
+				<th scope="row">{{weekday_abbrev}}<br/>Brkfst</th>
+				{% for i in range(8) %}
+					<td>
+						{{today_lunch[i]}}
+					</td>
+				{% endfor %}
+			</tr>
+			<tr class="today">
+				<th scope="row">{{weekday_abbrev}}<br/>Lunch</th>
+				{% for i in range(8) %}
+					<td>
+						{{today_lunch[i]}}
+					</td>
+				{% endfor %}
+			</tr>
+			<tr class="today">
+				<th scope="row">{{weekday_abbrev}}<br/>Dinner</th>
+				{% for i in range(8) %}
+					<td>
+						{{today_dinner[i]}}
+					</td>
+				{% endfor %}
+			</tr>
+			<tr class="not-today">
+				<th scope="row">{{next_weekday_abbrev}}<br/>AM</th>
+				{% for i in range(8) %}
+					<td>
+						{{next_breakfast[i]}}
+					</td>
+				{% endfor %}
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>Daily Inspiration 每日灵感</h2>
+	<!-- UNIMPLEMENTED -->
+
+	<h2>On This Day 以史为鉴</h2>
+	<!-- UNIMPLEMENTED -->
+
+	<h2>In the News 时事要闻</h2>
+	<!-- UNIMPLEMENTED -->
+</article>
+<footer>
+	<p>
+	<a href="https://ykps.andrewyu.org/daily-bulletin/">Home Page</a>
+	·
+	<a href="https://ykps.andrewyu.org/daily-bulletin/archive.html">Archive</a>
+	·
+	<a href="mailto:s22537@stu.ykpaoschool.cn">Contact</a>
+	</p>
+</footer>
+</body>
+</html>
