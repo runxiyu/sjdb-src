@@ -63,14 +63,31 @@
 		</thead>
 		<tbody>
 			<tr class="today">
-				<th scope="row"></th>
-				<td colspan="2">Assembly</td>
-				<td colspan="2">Assembly</td>
+				<th scope="row">{{ community_time_days[0][0] }}</th>
+				{% if (community_time_days[0][1] == community_time_days[0][2] == community_time_days[0][3] == community_time_days[0][4]) %}
+					<td colspan="4">{{ community_time_days[0][1] }}</td>
+				{% elif (community_time_days[0][1] == community_time_days[0][2]) and (community_time_days[0][3] == community_time_days[0][4]) %}
+					<td colspan="2">{{ community_time_days[0][1] }}</td>
+					<td colspan="2">{{ community_time_days[0][3] }}</td>
+				{% elif community_time_days[0][1] == community_time_days[0][2] %}
+					<td colspan="2">{{ community_time_days[0][1] }}</td>
+					<td colspan="1">{{ community_time_days[0][3] }}</td>
+					<td colspan="1">{{ community_time_days[0][4] }}</td>
+				{% elif community_time_days[0][3] == community_time_days[0][4] %}
+					<td colspan="1">{{ community_time_days[0][1] }}</td>
+					<td colspan="1">{{ community_time_days[0][2] }}</td>
+					<td colspan="2">{{ community_time_days[0][3] }}</td>
+				{% else %}
+					<td colspan="1">{{ community_time_days[0][1] }}</td>
+					<td colspan="1">{{ community_time_days[0][2] }}</td>
+					<td colspan="1">{{ community_time_days[0][3] }}</td>
+					<td colspan="1">{{ community_time_days[0][4] }}</td>
+				{% endif %}
 			</tr>
 			{% for community_time_day in community_time_days[1:] %}
 				<tr class="not-today">
 					<th scope="row">{{ community_time_day[0] }}</th>
-					{% if community_time_day[1] == community_time_day[2] == community_time_day[3] == community_time_day[4] %}
+					{% if (community_time_day[1] == community_time_day[2] == community_time_day[3] == community_time_day[4]) %}
 						<td colspan="4">{{ community_time_day[1] }}</td>
 					{% elif (community_time_day[1] == community_time_day[2]) and (community_time_day[3] == community_time_day[4]) %}
 						<td colspan="2">{{ community_time_day[1] }}</td>
