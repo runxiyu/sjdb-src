@@ -118,15 +118,15 @@
 		<tbody>
 			<tr class="today">
 				<th scope="row">{{weekday_abbrev}}<br/>Brkfst</th>
-				{% for i in range(8) %}
+				{% for i in range(6) %}
 					<td>
-						{{today_lunch[i]}}
+						{{today_breakfast[i]}}
 					</td>
 				{% endfor %}
 			</tr>
 			<tr class="today">
 				<th scope="row">{{weekday_abbrev}}<br/>Lunch</th>
-				{% for i in range(8) %}
+				{% for i in range(6) %}
 					<td>
 						{{today_lunch[i]}}
 					</td>
@@ -134,7 +134,7 @@
 			</tr>
 			<tr class="today">
 				<th scope="row">{{weekday_abbrev}}<br/>Dinner</th>
-				{% for i in range(8) %}
+				{% for i in range(6) %}
 					<td>
 						{{today_dinner[i]}}
 					</td>
@@ -142,7 +142,7 @@
 			</tr>
 			<tr class="not-today">
 				<th scope="row">{{next_weekday_abbrev}}<br/>AM</th>
-				{% for i in range(8) %}
+				{% for i in range(6) %}
 					<td>
 						{{next_breakfast[i]}}
 					</td>
