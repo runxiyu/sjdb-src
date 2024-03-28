@@ -21,6 +21,7 @@ app = Flask(__name__)
 app.jinja_env.undefined = StrictUndefined
 
 data = {
+        "aod": "FIXME",
         "stddate": "2024-04-01",
         "weekday_english": "Monday",
         "weekday_abbrev": "Mon",
