@@ -3,3 +3,4 @@ secrets.json
 __pycache__
 .mypy_cache
 config.ini
+build/
