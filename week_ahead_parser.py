@@ -6,6 +6,7 @@ from configparser import ConfigParser
 from datetime import datetime
 import json
 import tempfile
+import requests.exceptions
 
 DAYNAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -26,10 +27,14 @@ def download_from_sharepoint(
     if not output_to:
         fd, output_to = tempfile.mkstemp()
         # TODO: Is it safe to just discard fd?
+
     with open(output_to, "wb") as local_file:
-        client.web.get_file_by_guest_url(sharing_link_url).download(
-            local_file
-        ).execute_query()
+        try:
+            client.web.get_file_by_guest_url(sharing_link_url).download(
+                local_file
+            ).execute_query()
+        except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, AttributeError):
+            raise ConnectionError("Unable to download The Week Ahead") from None
     return output_to
 
 
@@ -47,8 +52,13 @@ def download_the_week_ahead(
 
 def extract_community_time_from_presentation(config: ConfigParser) -> list[list[str]]:
     from pptx import Presentation  # type: ignore
+    import pptx.exc
 
-    prs = Presentation(config["the_week_ahead"]["local_filename"])
+    try:
+        prs = Presentation(config["the_week_ahead"]["local_filename"])
+    except pptx.exc.PackageNotFoundError:
+        raise ValueError("The Week Ahead is missing, empty, or broken") from None
+
     slide = prs.slides[int(config["the_week_ahead"]["community_time_page_number"])]
     for shape in slide.shapes:
         if not shape.has_table:
