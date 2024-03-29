@@ -34,20 +34,27 @@ def download_from_sharepoint(
                 local_file
             ).execute_query()
         except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, AttributeError):
-            raise ConnectionError("Unable to download The Week Ahead") from None
+            raise ConnectionError from None
+        except IndexError:
+            raise ValueError("SharePoint authentication failure or other error") from None
     return output_to
 
 
 def download_the_week_ahead(
     config: ConfigParser,
-) -> None:  # TODO: What happens when the download fails?
+) -> None:
     credentials = (config["credentials"]["username"], config["credentials"]["password"])
     sharepoint_site_url = config["the_week_ahead"]["site_url"]
     sharing_link_url = config["the_week_ahead"]["file_url"]
     output_to = config["the_week_ahead"]["local_filename"]
-    download_from_sharepoint(
-        sharepoint_site_url, sharing_link_url, credentials, output_to
-    )
+    try:
+        download_from_sharepoint(
+            sharepoint_site_url, sharing_link_url, credentials, output_to
+        )
+    except ConnectionError:
+        raise ConnectionError("Unable to download The Week Ahead: Connection failed?") from None
+    except ValueError:
+        raise ValueError("Unable to download The Week Ahead: Invalid credentials?") from None
 
 
 def extract_community_time_from_presentation(config: ConfigParser) -> list[list[str]]:
@@ -150,7 +157,7 @@ def main() -> None:
     today = datetime.today().strftime("%Y%m%d")
     config = ConfigParser()
     config.read("config.ini")
-    # download_the_week_ahead(config)
+    download_the_week_ahead(config)
     data = {
         "community_time_days": fix_community_time(
             extract_community_time_from_presentation(config)
