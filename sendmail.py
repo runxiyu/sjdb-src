@@ -81,7 +81,8 @@ def main() -> None:
         to=config["test_sendmail"]["to"].split(" "),
         cc=config["test_sendmail"]["cc"].split(" "),
         bcc=config["test_sendmail"]["bcc"].split(" "),
-        when=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=int(config["test_sendmail"]["minutes_delay"])),
+        when=datetime.datetime.now(datetime.timezone.utc)
+        + datetime.timedelta(minutes=int(config["test_sendmail"]["minutes_delay"])),
         content_type="HTML",
         importance="Normal",
     )
