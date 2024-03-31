@@ -30,51 +30,36 @@ def get_client(config: ConfigParser) -> GraphClient:
 
 def _send_mail(                                                             
         me,                                             
-        subject,                                                                  
-        body,                                                         
-        to_recipients,                                     
-        cc_recipients=None,                             
-        bcc_recipients=None,                                        
+        msg: Message,
         save_to_sent_items=True,                         
     ):                                                              
-        """Send a new message on the fly
- 
-        :param str subject: The subject of the message.           
-        :param str body: The body of the message. It can be in HTML or text format
-        :param list[str] to_recipients: The To: recipients for the message.
-        :param list[str] cc_recipients: The CC: recipients for the message.
-        :param list[str] bcc_recipients: The BCC: recipients for the message.
-        :param bool save_to_sent_items: Indicates whether to save the message in Sent Items. Specify it only if
-            the parameter is false; default is true      
-        """                                                    
-        return_type = Message(me.context)               
-        return_type.subject = subject                                   
-        return_type.body = body  
-        [
-            return_type.to_recipients.add(Recipient.from_email(email))
-            for email in to_recipients
-        ]
-        if bcc_recipients is not None:
-            [
-                return_type.bcc_recipients.add(Recipient.from_email(email))
-                for email in bcc_recipients
-            ]
-        if cc_recipients is not None:
-            [
-                return_type.cc_recipients.add(Recipient.from_email(email))
-                for email in cc_recipients
-            ]
- 
-        payload = {"message": return_type, "saveToSentItems": save_to_sent_items}
-        qry = ServiceOperationQuery(me, "sendmail", None, payload)
+        qry = ServiceOperationQuery(me, "sendmail", None, {"message": msg, "saveToSentItems": save_to_sent_items})
         me.context.add_query(qry)
-        return return_type
+        return msg
+        # what should I return?
 
 def sendmail(client: GraphClient, config: ConfigParser) -> None:
+    # construct the message
+    msg = Message(client.me.context)
+    msg.subject = config["test_sendmail"]["subject"]
+    msg.body = open(config["test_sendmail"]["local_html_path"]).read() # TODO
+
+    to_recipients = [a for a in config["test_sendmail"]["to"].split(" ") if a]
+    bcc_recipients = [a for a in config["test_sendmail"]["bcc"].split(" ") if a]
+    cc_recipients = [a for a in config["test_sendmail"]["cc"].split(" ") if a]
+    print(to_recipients, bcc_recipients, cc_recipients)
+    if to_recipients:
+        for email in to_recipients:
+            msg.to_recipients.add(Recipient.from_email(email))
+    if bcc_recipients:
+        for email in bcc_recipients:
+            msg.bcc_recipients.add(Recipient.from_email(email))
+    if cc_recipients:
+        for email in cc_recipients:
+            msg.cc_recipients.add(Recipient.from_email(email))
+
     _send_mail(client.me,
-        subject=config["test_sendmail"]["subject"],
-        body=open(config["test_sendmail"]["local_html_path"], "r").read(),
-        to_recipients=config["test_sendmail"]["recipients"].split(" "),
+        msg=msg,
         save_to_sent_items=True,
     ).execute_query()
 
