@@ -9,6 +9,7 @@
 6. Still in the "Authentication" tab, select "Add a platform", select
    "Mobile and desktop applications", and put "`http://localhost`" in
    the custom redirect URI, and press "Configure".
+7. Add the correct scopes (see `config.ini`)
 
 The following sections should be present in your `manifest.json` after
 you complete these settings, if you really want to verify them.
