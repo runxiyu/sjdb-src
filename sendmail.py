@@ -47,8 +47,9 @@ def sendmail(config: ConfigParser) -> None:
     )
     client.me.send_mail(
         subject=config["test_sendmail"]["subject"],
-        body=config["test_sendmail"]["message"],
+        body=open(config["test_sendmail"]["local_html_path"], "r").read(),
         to_recipients=config["test_sendmail"]["recipients"].split(" "),
+        save_to_sent_items=True,
     ).execute_query()
 
 
