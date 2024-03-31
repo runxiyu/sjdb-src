@@ -6,8 +6,8 @@ from configparser import ConfigParser
 from datetime import datetime
 import json
 import tempfile
-from office365.graph_client import GraphClient # type: ignore
-import msal # type: ignore
+from office365.graph_client import GraphClient  # type: ignore
+import msal  # type: ignore
 import logging
 
 loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
@@ -16,6 +16,9 @@ for logger in loggers:
 
 
 def acquire_token(config: ConfigParser) -> Callable[[], dict[str, str]]:
+    # A closure is used because office365.graph_client.GraphClient expects to
+    # receive a callback function that is basically Callable[[], str] where str
+    # is the token.
     def _() -> dict[str, str]:
         authority_url = "https://login.microsoftonline.com/{0}".format(
             config["credentials"]["tenant_id"]

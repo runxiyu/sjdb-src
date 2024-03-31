@@ -33,10 +33,16 @@ def download_from_sharepoint(
             client.web.get_file_by_guest_url(sharing_link_url).download(
                 local_file
             ).execute_query()
-        except (requests.exceptions.SSLError, requests.exceptions.ConnectionError, AttributeError):
+        except (
+            requests.exceptions.SSLError,
+            requests.exceptions.ConnectionError,
+            AttributeError,
+        ):
             raise ConnectionError from None
         except IndexError:
-            raise ValueError("SharePoint authentication failure or other error") from None
+            raise ValueError(
+                "SharePoint authentication failure or other error"
+            ) from None
     return output_to
 
 
@@ -52,9 +58,13 @@ def download_the_week_ahead(
             sharepoint_site_url, sharing_link_url, credentials, output_to
         )
     except ConnectionError:
-        raise ConnectionError("Unable to download The Week Ahead: Connection failed?") from None
+        raise ConnectionError(
+            "Unable to download The Week Ahead: Connection failed?"
+        ) from None
     except ValueError:
-        raise ValueError("Unable to download The Week Ahead: Invalid credentials?") from None
+        raise ValueError(
+            "Unable to download The Week Ahead: Invalid credentials?"
+        ) from None
 
 
 def extract_community_time_from_presentation(config: ConfigParser) -> list[list[str]]:
@@ -89,8 +99,8 @@ def extract_community_time_from_presentation(config: ConfigParser) -> list[list[
                     cell_text += run.text
             if not cell_text.strip():
                 cell_text = old_cell_text  # type: ignore
-                # TODO: There's probably a more robust way to detect whether a cell spans multiple columns but I'm lazy
-                # TODO: Yes of course there's a way to detect that i.e. cell.is_merge_origin, cell.is_spanned, cell.span_height, cell.span_width
+                # TODO: Use cell.is_merge_origin, cell.is_spanned,
+                # cell.span_height, cell.span_width instead
             row[c] = cell_text
             old_cell_text = cell_text
         tbll.append(row)

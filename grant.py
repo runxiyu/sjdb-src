@@ -2,9 +2,10 @@ from __future__ import annotations
 from typing import Optional, Any, Callable
 import os
 from configparser import ConfigParser
-from office365.graph_client import GraphClient # type: ignore
-import msal # type: ignore
+from office365.graph_client import GraphClient  # type: ignore
+import msal  # type: ignore
 import logging
+
 
 def acquire_token(config: ConfigParser) -> Callable[[], dict[str, str]]:
     def _() -> dict[str, str]:
@@ -21,7 +22,9 @@ def acquire_token(config: ConfigParser) -> Callable[[], dict[str, str]]:
         )
         assert type(result) is dict
         return result
+
     return _
+
 
 def acquire_consent(config: ConfigParser) -> None:
     client = GraphClient.with_token_interactive(
@@ -40,7 +43,10 @@ def main() -> None:
     print("Finished acquiring consent, verifying login...")
     client = GraphClient(acquire_token(config))
     me = client.me.get().execute_query()
-    print("Authentication complete and verified with account %s." % me.user_principal_name)
+    print(
+        "Authentication complete and verified with account %s." % me.user_principal_name
+    )
+
 
 if __name__ == "__main__":
     main()

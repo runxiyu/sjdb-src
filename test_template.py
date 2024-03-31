@@ -29,7 +29,7 @@ with open(
     data = json.load(fd)
 
 extra_data = {
-    "aod": data["aods"][0], # FIXME
+    "aod": data["aods"][0],  # FIXME
     "stddate": "2024-04-01",
     "weekday_english": "Monday",
     "weekday_abbrev": "Mon",
