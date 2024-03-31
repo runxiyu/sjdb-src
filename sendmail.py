@@ -59,6 +59,13 @@ def sendmail(
         "https://graph.microsoft.com/v1.0/me/messages/%s/send" % response["id"],
         headers={"Authorization": "Bearer " + token},
     )
+    if response2.status_code != 202:
+        raise ValueError(
+            "Graph response to messages/%s/send returned someething other than 202 Accepted"
+            % response["id"],
+            response2,
+        )
+    # TODO: Handle more errors
 
 
 def main() -> None:
