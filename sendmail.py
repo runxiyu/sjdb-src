@@ -3,7 +3,6 @@ import logging
 import msal  # type: ignore
 import requests
 import datetime
-from pprint import pprint
 from configparser import ConfigParser
 from typing import Any, Optional
 
@@ -46,9 +45,7 @@ def sendmail(
         if when.tzinfo is None:
             raise ValueError("Naive datetimes are no longer supported")
         utcwhen = when.astimezone(datetime.timezone.utc)
-        print(when.isoformat(timespec="seconds"))
         isoval = utcwhen.isoformat(timespec="seconds").replace("+00:00", "Z")
-        print(isoval)
         data["singleValueExtendedProperties"] = [
             {"id": "SystemTime 0x3FEF", "value": isoval}
         ]
@@ -58,12 +55,10 @@ def sendmail(
         json=data,
         headers={"Authorization": "Bearer " + token},
     ).json()
-    pprint(response)
     response2 = requests.post(
         "https://graph.microsoft.com/v1.0/me/messages/%s/send" % response["id"],
         headers={"Authorization": "Bearer " + token},
     )
-    pprint(response2.text)
 
 
 def main() -> None:
