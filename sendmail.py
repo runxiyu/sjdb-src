@@ -15,29 +15,6 @@ for logger in loggers:
     logger.setLevel(logging.DEBUG)
 
 
-def acquire_token(config: ConfigParser) -> Callable[[], dict[str, str]]:
-    # A closure is used because office365.graph_client.GraphClient expects to
-    # receive a callback function that is basically Callable[[], str] where str
-    # is the token.
-    def _() -> dict[str, str]:
-        authority_url = "https://login.microsoftonline.com/{0}".format(
-            config["credentials"]["tenant_id"]
-        )
-        app = msal.PublicClientApplication(
-            authority=authority_url, client_id=config["credentials"]["client_id"]
-        )
-
-        result = app.acquire_token_by_username_password(
-            username=config["credentials"]["username"],
-            password=config["credentials"]["password"],
-            scopes=["Mail.Send", "User.Read"],
-        )
-        assert type(result) is dict
-        return result
-
-    return _
-
-
 def sendmail(config: ConfigParser) -> None:
     client = GraphClient.with_username_and_password(
         config["credentials"]["tenant_id"],
@@ -56,9 +33,6 @@ def sendmail(config: ConfigParser) -> None:
 def main() -> None:
     config = ConfigParser()
     config.read("config.ini")
-    client = GraphClient(acquire_token(config))
-    me = client.me.get().execute_query()
-    print(me.user_principal_name)
     sendmail(config)
 
 
