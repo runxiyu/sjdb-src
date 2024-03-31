@@ -1,51 +1,63 @@
 from __future__ import annotations
-from typing import Optional, Any, Callable
-import os
-from configparser import ConfigParser
-from office365.graph_client import GraphClient  # type: ignore
-import msal  # type: ignore
 import logging
+import msal  # type: ignore
+import requests
+from pprint import pprint
+from configparser import ConfigParser
+from typing import Any
+
+# logging.basicConfig(level=logging.DEBUG)
+# logging.getLogger("msal").setLevel(logging.INFO)
 
 
-def acquire_token(config: ConfigParser) -> Callable[[], dict[str, str]]:
-    def _() -> dict[str, str]:
-        authority_url = "https://login.microsoftonline.com/{0}".format(
-            config["credentials"]["tenant_id"]
-        )
-        app = msal.PublicClientApplication(
-            authority=authority_url, client_id=config["credentials"]["client_id"]
-        )
-        result = app.acquire_token_by_username_password(
-            username=config["credentials"]["username"],
-            password=config["credentials"]["password"],
-            scopes=["Mail.Send", "User.Read"],
-        )
-        assert type(result) is dict
-        return result
-
-    return _
-
-
-def acquire_consent(config: ConfigParser) -> None:
-    client = GraphClient.with_token_interactive(
-        config["credentials"]["tenant_id"], config["credentials"]["client_id"]
+def acquire_token_interactive(
+    app: msal.PublicClientApplication, config: ConfigParser
+) -> str:
+    result = app.acquire_token_interactive(
+        config["credentials"]["scope"].split(" "),
+        login_hint=config["credentials"]["username"],
     )
-    me = client.me.get().execute_query()
-    if not me.given_name:
-        raise ValueError("Cannot acquire consent") from None
+
+    if "access_token" in result:
+        assert type(result["access_token"]) is str
+        return result["access_token"]
+    else:
+        raise ValueError(
+            "Authentication error while trying to interactively acquire a token"
+        )
+
+
+def test_login(
+    app: msal.PublicClientApplication, config: ConfigParser
+) -> dict[str, Any]:
+    result = app.acquire_token_by_username_password(
+        config["credentials"]["username"],
+        config["credentials"]["password"],
+        scopes=config["credentials"]["scope"].split(" "),
+    )
+
+    if "access_token" in result:
+        token = result["access_token"]
+    else:
+        raise ValueError("Authentication error in password login")
+
+    graph_response = requests.get(
+        "https://graph.microsoft.com/v1.0/me",
+        headers={"Authorization": "Bearer " + token},
+    ).json()
+    assert type(graph_response) is dict
+    return graph_response
 
 
 def main() -> None:
     config = ConfigParser()
     config.read("config.ini")
-    print("Acquiring consent... check your web browser")
-    acquire_consent(config)
-    print("Finished acquiring consent, verifying login...")
-    client = GraphClient(acquire_token(config))
-    me = client.me.get().execute_query()
-    print(
-        "Authentication complete and verified with account %s." % me.user_principal_name
+    app = msal.PublicClientApplication(
+        config["credentials"]["client_id"],
+        authority=config["credentials"]["authority"],
     )
+    acquire_token_interactive(app, config)
+    pprint(test_login(app, config))
 
 
 if __name__ == "__main__":
