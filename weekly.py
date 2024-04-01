@@ -307,7 +307,7 @@ def main(stddate: str, config: ConfigParser) -> None:
     menu = extract_all_menus(
         os.path.join(config["general"]["build_path"], "menu-%s-en.pptx" % date),
         os.path.join(config["general"]["build_path"], "menu-%s-cn.pptx" % date),
-        config
+        config,
     )
 
     logger.info("Packing data")
@@ -318,9 +318,14 @@ def main(stddate: str, config: ConfigParser) -> None:
         "menu": menu,
     }
 
-    with open(os.path.join(config["general"]["build_path"], "week-" + date + ".json"), "w") as fd:
+    with open(
+        os.path.join(config["general"]["build_path"], "week-" + date + ".json"), "w"
+    ) as fd:
         json.dump(data, fd, ensure_ascii=False)
-    logger.info("Data dumped to " + os.path.join(config["general"]["build_path"], "week-" + date + ".json"))
+    logger.info(
+        "Data dumped to "
+        + os.path.join(config["general"]["build_path"], "week-" + date + ".json")
+    )
 
 
 if __name__ == "__main__":
