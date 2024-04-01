@@ -62,11 +62,18 @@ def main(stddate: str, config: ConfigParser) -> None:
 
     swayindex = (dtdate - week_start_date).days
 
-    print(swayindex)
     try:
         aod = week_data["aods"][swayindex]
     except IndexError:
         aod = "None"
+
+    breakfast_today = week_data["menu"][0][swayindex]
+    lunch_today = week_data["menu"][1][swayindex]
+    dinner_today = week_data["menu"][2][swayindex]
+    try:
+        breakfast_tomorrow = week_data["menu"][0][swayindex + 1]
+    except IndexError:
+        breakfast_tomorrow = None
 
     data = {
         "stddate": stddate,
@@ -77,10 +84,50 @@ def main(stddate: str, config: ConfigParser) -> None:
         "next_weekday_abbrev": next_weekday_short,  # TODO: Check if EOW
         "weekday_chinese": weekday_chinese,
         "day_of_cycle": day_of_cycle,
-        "today_breakfast": ("1", "2", "3", "4", "5", "6", "7"),
-        "today_lunch": ("1", "2", "3", "4", "5", "6", "7"),
-        "today_dinner": ("1", "2", "3", "4", "5", "6", "7"),
-        "next_breakfast": ("1", "2", "3", "4", "5", "6", "7"),
+        "today_breakfast": (
+            breakfast_today[0],
+            breakfast_today[1],
+            breakfast_today[2],
+            breakfast_today[3],
+            None,
+            None,
+            None,
+        ),
+        "today_lunch": (
+            lunch_today[0],
+            lunch_today[1],
+            lunch_today[2],
+            lunch_today[3],
+            lunch_today[4],
+            lunch_today[5],
+            None,
+        ),
+        "today_dinner": (
+            (
+                dinner_today[0],
+                dinner_today[1],
+                dinner_today[2],
+                dinner_today[3],
+                dinner_today[4],
+                dinner_today[5],
+                None,
+            )
+            if (dinner_today and breakfast_tomorrow)
+            else None
+        ),  # TODO: no breakfast tomorrow implies that the dinner for today is erroneous?
+        "next_breakfast": (
+            (
+                breakfast_tomorrow[0],
+                breakfast_tomorrow[1],
+                breakfast_tomorrow[2],
+                breakfast_tomorrow[3],
+                None,
+                None,
+                None,
+            )
+            if breakfast_tomorrow
+            else None
+        ),
     }
     with open(
         os.path.join(config["general"]["build_path"], "day-" + date + ".json"), "w"

@@ -22,7 +22,9 @@
 	tr.today { background-color: #e7d2ec; }
 	tr.not-today { color: rgb(150, 150, 150); }
 	td, th { border: 1px solid rgb(150, 150, 150); padding: 0.4rem; }
-	td { text-align: center; min-width: 4.8rem; }
+	table#community_time td { text-align: center;}
+	td { min-width: 4.8rem; }
+	table#menu ul { padding-left: 1.2em; }
 	th { color: black; background-color: rgb(240, 240, 240); }
 	blockquote { position: relative; margin-left: 40px; }
 	blockquote::before { content: ""; position: absolute; left: -14px; top: 0px; bottom: 0px; width: 2px; background-color: rgb(180, 180, 180); }
@@ -53,7 +55,7 @@
 	{% if community_time %}
 	<h2>Community Time 午休时间</h2>
 	<!---->
-	<table>
+	<table id="community_time">
 		<colgroup><col style="width: 5%"><col style="width: 23.75%"><col style="width: 23.75%"><col style="width: 23.75%"><col style="width: 23.75%"></colgroup>
 		<thead>
 			<tr>
@@ -115,7 +117,7 @@
 	</table>
 	{% endif %}
 	<h2>Delicious Dinings 今日佳肴</h2>
-	<table>
+	<table id="menu">
 		<colgroup>
 			<col style="width: 5%">
 			<col style="width: 13.571428571428571%;">
@@ -132,9 +134,9 @@
 				<th scope="col">Taste of Asia</th>
 				<th scope="col">Eat Global</th>
 				<th scope="col">Revolution</th>
+				<th scope="col">Piccola Italia</th>
 				<th scope="col">Vegeterian</th>
 				<th scope="col">Daily Soup</th>
-				<th scope="col">Desert/Fruit/Drink</th>
 				<th scope="col">Student Snack</th>
 			</tr>
 		</thead>
@@ -143,7 +145,15 @@
 				<th scope="row">{{weekday_abbrev}}<br/>Brkfst</th>
 				{% for i in range(7) %}
 					<td>
-						{{today_breakfast[i]}}
+						{% if today_breakfast[i] %}
+						<ul>
+						{% for m in today_breakfast[i] %}
+						<li>
+							{{ m[0] }}<br/>{{m[1]}}
+						</li>
+						{% endfor %}
+						</ul>
+						{% endif %}
 					</td>
 				{% endfor %}
 			</tr>
@@ -151,26 +161,54 @@
 				<th scope="row">{{weekday_abbrev}}<br/>Lunch</th>
 				{% for i in range(7) %}
 					<td>
-						{{today_lunch[i]}}
+						{% if today_lunch[i] %}
+						<ul>
+						{% for m in today_lunch[i] %}
+						<li>
+							{{ m[0] }}<br/>{{m[1]}}
+						</li>
+						{% endfor %}
+						</ul>
+						{% endif %}
 					</td>
 				{% endfor %}
 			</tr>
+			{% if today_dinner %}
 			<tr class="today">
 				<th scope="row">{{weekday_abbrev}}<br/>Dinner</th>
 				{% for i in range(7) %}
 					<td>
-						{{today_dinner[i]}}
+						{% if today_dinner[i] %}
+						<ul>
+						{% for m in today_dinner[i] %}
+						<li>
+							{{ m[0] }}<br/>{{m[1]}}
+						</li>
+						{% endfor %}
+						</ul>
+						{% endif %}
 					</td>
 				{% endfor %}
 			</tr>
+			{% endif %}
+			{% if next_breakfast %}
 			<tr class="not-today">
 				<th scope="row">{{next_weekday_abbrev}}<br/>Brkfst</th>
 				{% for i in range(7) %}
 					<td>
-						{{next_breakfast[i]}}
+						{% if next_breakfast[i] %}
+						<ul>
+						{% for m in next_breakfast[i] %}
+						<li>
+							{{ m[0] }}<br/>{{m[1]}}
+						</li>
+						{% endfor %}
+						</ul>
+						{% endif %}
 					</td>
 				{% endfor %}
 			</tr>
+			{% endif %}
 		</tbody>
 	</table>
 
