@@ -23,7 +23,7 @@ def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
     col_count: int = len(tbl.columns)
     tbll = []
     for r in range(row_count):
-        row: list[Optional[tuple[str, int, int, str]]] = [None] * col_count
+        row: list[tuple[str, int, int, str]] = [("", 0, 0, "")] * col_count
         old_cell_text = ""
         for c in range(col_count):
             cell_text = ""
