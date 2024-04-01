@@ -176,14 +176,8 @@ def download_share_url(
 
 
 def extract_community_time_from_presentation(
-    date: str, config: ConfigParser
+    date: str, prs: pptx.Presentation, config: ConfigParser
 ) -> list[list[str]]:
-    try:
-        prs = pptx.Presentation(
-            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
-        )
-    except pptx.exc.PackageNotFoundError:
-        raise ValueError("The Week Ahead is missing, empty, or broken") from None
 
     slide = prs.slides[int(config["the_week_ahead"]["community_time_page_number"])]
     for shape in slide.shapes:
@@ -216,10 +210,7 @@ def extract_community_time_from_presentation(
     return tbll
 
 
-def extract_aod_from_presentation(date: str, config: ConfigParser) -> list[str]:
-    prs = pptx.Presentation(
-        os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
-    )
+def extract_aod_from_presentation(date: str, prs:pptx.Presentation, config: ConfigParser) -> list[str]:
     slide = prs.slides[int(config["the_week_ahead"]["aod_page_number"])]
 
     aods = ["", "", "", ""]
@@ -278,31 +269,43 @@ def main(stddate: str, config: ConfigParser) -> None:
     token = acquire_token(config)
 
     logger.info("Downloading The Week Ahead")
-    download_share_url(
-        token,
-        config["the_week_ahead"]["file_url"],
-        os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date),
-    )
 
     logger.info("Extracting Community Time")
     try:
+        prs = pptx.Presentation(
+            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
+        )
+    except pptx.exc.PackageNotFoundError:
+        download_share_url(
+            token,
+            config["the_week_ahead"]["file_url"],
+            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date),
+        )
+        prs = pptx.Presentation(
+            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
+        )
+    try:
         community_time = fix_community_time(
-            extract_community_time_from_presentation(date, config)
+            extract_community_time_from_presentation(date, prs, config)
         )
     except ValueError:
         logger.warning(
             "Irregular Community Time; opening The Week Ahead for manual editing. Press ENTER after saving."
         )  # TODO: interactive elements in non-interactive functions
+        del prs
         os.system(
             "open "
             + os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
         )
         input("PRESS ENTER TO CONTINUE >>>")
+        prs = pptx.Presentation(
+            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
+        )
         community_time = fix_community_time(
-            extract_community_time_from_presentation(date, config)
+            extract_community_time_from_presentation(date, prs, config)
         )
     logger.info("Extracting AODs")
-    aods = extract_aod_from_presentation(date, config)
+    aods = extract_aod_from_presentation(date, prs, config)
     logger.info("Extracting menu")
     menu = extract_all_menus(
         os.path.join(config["general"]["build_path"], "menu-%s-en.pptx" % date),
