@@ -55,7 +55,7 @@ def main(stddate: str, config: ConfigParser) -> None:
         "aod": aod,
         "weekday_english": weekday,
         "weekday_abbrev": weekday_short,
-        "next_weekday_abbrev": "Tue", # TODO: Check if EOW
+        "next_weekday_abbrev": next_weekday_short, # TODO: Check if EOW
         "weekday_chinese": weekday_chinese,
         "day_of_cycle": day_of_cycle,
         "today_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
