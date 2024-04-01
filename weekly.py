@@ -264,7 +264,8 @@ def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
     return res
 
 
-def main(date: str, config: ConfigParser) -> None:
+def main(stddate: str, config: ConfigParser) -> None:
+    date = stddate.replace("-", "")
     logger.info("Acquiring token")
     token = acquire_token(config)
 
@@ -301,6 +302,7 @@ def main(date: str, config: ConfigParser) -> None:
 
     logger.info("Packing data")
     data = {
+        "start_date": stddate,
         "community_time": community_time,
         "aods": aods,
         "menu": menu,
@@ -336,6 +338,6 @@ if __name__ == "__main__":
                 "%Y-%m-%d"
             )
         logging.info("Generating for %s" % date)
-        main(date.replace("-", ""), config)
+        main(date, config)
     except KeyboardInterrupt:
         logging.critical("KeyboardInterrupt")
