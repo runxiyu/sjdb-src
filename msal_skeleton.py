@@ -8,7 +8,11 @@ from typing import Any, Optional
 import json
 
 
-def acquire_token(app: msal.PublicClientApplication, config: ConfigParser) -> str:
+def acquire_token(config: ConfigParser) -> str:
+    app = msal.PublicClientApplication(
+        config["credentials"]["client_id"],
+        authority=config["credentials"]["authority"],
+    )
     result = app.acquire_token_by_username_password(
         config["credentials"]["username"],
         config["credentials"]["password"],
@@ -33,11 +37,7 @@ def something(token: str) -> dict[str, Any]:
 def main() -> None:
     config = ConfigParser()
     config.read("config.ini")
-    app = msal.PublicClientApplication(
-        config["credentials"]["client_id"],
-        authority=config["credentials"]["authority"],
-    )
-    token = acquire_token(app, config)
+    token = acquire_token(config)
     print(something(token))
     # TODO
 
