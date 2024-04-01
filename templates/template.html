@@ -118,28 +118,30 @@
 	<table>
 		<colgroup>
 			<col style="width: 5%">
-			<col style="width: 11.875%;">
-			<col style="width: 11.875%;">
-			<col style="width: 11.875%;">
-			<col style="width: 11.875%;">
-			<col style="width: 11.875%;">
-			<col style="width: 11.875%;">
-			<col style="width: 11.875%;">
-			<col style="width: 11.875%; border-left: 2px solid rgb(180, 180, 180);">
+			<col style="width: 13.571428571428571%;">
+			<col style="width: 13.571428571428571%;">
+			<col style="width: 13.571428571428571%;">
+			<col style="width: 13.571428571428571%;">
+			<col style="width: 13.571428571428571%;">
+			<col style="width: 13.571428571428571%;">
+			<col style="width: 13.571428571428571%; 2px solid rgb(180, 180, 180);">
 		</colgroup>
 		<thead>
 			<tr>
 				<th scope="col">Day</th>
-				<th colspan="3" scope="colgroup">Taste of Asia</th>
-				<th colspan="3" scope="colgroup">Eat Global</th>
+				<th scope="col">Taste of Asia</th>
+				<th scope="col">Eat Global</th>
 				<th scope="col">Revolution</th>
-				<th scope="col">Snack</th>
+				<th scope="col">Vegeterian</th>
+				<th scope="col">Daily Soup</th>
+				<th scope="col">Desert/Fruit/Drink</th>
+				<th scope="col">Student Snack</th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr class="today">
 				<th scope="row">{{weekday_abbrev}}<br/>Brkfst</th>
-				{% for i in range(8) %}
+				{% for i in range(7) %}
 					<td>
 						{{today_breakfast[i]}}
 					</td>
@@ -147,7 +149,7 @@
 			</tr>
 			<tr class="today">
 				<th scope="row">{{weekday_abbrev}}<br/>Lunch</th>
-				{% for i in range(8) %}
+				{% for i in range(7) %}
 					<td>
 						{{today_lunch[i]}}
 					</td>
@@ -155,7 +157,7 @@
 			</tr>
 			<tr class="today">
 				<th scope="row">{{weekday_abbrev}}<br/>Dinner</th>
-				{% for i in range(8) %}
+				{% for i in range(7) %}
 					<td>
 						{{today_dinner[i]}}
 					</td>
@@ -163,7 +165,7 @@
 			</tr>
 			<tr class="not-today">
 				<th scope="row">{{next_weekday_abbrev}}<br/>Brkfst</th>
-				{% for i in range(8) %}
+				{% for i in range(7) %}
 					<td>
 						{{next_breakfast[i]}}
 					</td>

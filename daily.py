@@ -58,10 +58,10 @@ def main(stddate: str, config: ConfigParser) -> None:
         "next_weekday_abbrev": next_weekday_short, # TODO: Check if EOW
         "weekday_chinese": weekday_chinese,
         "day_of_cycle": day_of_cycle,
-        "today_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
-        "today_lunch": ("1", "2", "3", "4", "5", "6", "7", "8"),
-        "today_dinner": ("1", "2", "3", "4", "5", "6", "7", "8"),
-        "next_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
+        "today_breakfast": ("1", "2", "3", "4", "5", "6", "7"),
+        "today_lunch": ("1", "2", "3", "4", "5", "6", "7"), 
+        "today_dinner": ("1", "2", "3", "4", "5", "6", "7"), 
+        "next_breakfast": ("1", "2", "3", "4", "5", "6", "7"), 
     }
     with open(os.path.join(config["general"]["build_path"], "day-" + date + ".json"), "w") as fd:
         json.dump(data, fd, ensure_ascii=False)
