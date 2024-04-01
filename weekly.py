@@ -4,10 +4,12 @@ from __future__ import annotations
 from typing import Any, Optional
 from configparser import ConfigParser
 
+import argparse
 import logging
 import msal  # type: ignore
 import requests
 import datetime
+import pytz
 import os
 import json
 import base64
@@ -15,9 +17,6 @@ import pptx  # type: ignore
 import pptx.exc  # type: ignore
 
 logger = logging.getLogger(__name__)
-
-
-DAYNAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 
 def zero_list(l: list[Any]) -> list[Any]:
@@ -57,7 +56,7 @@ def parse_meal_tables(
 
 def combine_parsed_meal_tables(
     en: list[list[list[str]]], cn: list[list[list[str]]]
-) -> list[list[list[str]]]:
+) -> list[list[list[list[str]]]]:
     if not equal_shapes(cn, en):
         raise ValueError("Augmented menus not in the same shape")
 
@@ -66,7 +65,7 @@ def combine_parsed_meal_tables(
     for j in range(len(en)):
         for i in range(len(en[j])):
             for k in range(len(en[j][i])):
-                c[j][i][k] = en[j][i][k] + "\n" + cn[j][i][k]
+                c[j][i][k] = [en[j][i][k], cn[j][i][k]]
     return c
 
 
@@ -105,7 +104,7 @@ def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
 
 def extract_all_menus(
     filename_en: str, filename_cn: str, config: ConfigParser
-) -> list[list[list[list[str]]]]:
+) -> list[list[list[list[list[str]]]]]:
     try:
         enprs = pptx.Presentation(filename_en)
         cnprs = pptx.Presentation(filename_cn)
@@ -168,9 +167,13 @@ def download_share_url(
                 f.write(chunk)
 
 
-def extract_community_time_from_presentation(config: ConfigParser) -> list[list[str]]:
+def extract_community_time_from_presentation(
+    date: str, config: ConfigParser
+) -> list[list[str]]:
     try:
-        prs = pptx.Presentation(config["the_week_ahead"]["local_filename"])
+        prs = pptx.Presentation(
+            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
+        )
     except pptx.exc.PackageNotFoundError:
         raise ValueError("The Week Ahead is missing, empty, or broken") from None
 
@@ -205,8 +208,10 @@ def extract_community_time_from_presentation(config: ConfigParser) -> list[list[
     return tbll
 
 
-def extract_aod_from_presentation(config: ConfigParser) -> list[str]:
-    prs = pptx.Presentation(config["the_week_ahead"]["local_filename"])
+def extract_aod_from_presentation(date: str, config: ConfigParser) -> list[str]:
+    prs = pptx.Presentation(
+        os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
+    )
     slide = prs.slides[int(config["the_week_ahead"]["aod_page_number"])]
 
     aods = ["", "", "", ""]
@@ -243,7 +248,7 @@ def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
     res = []
     for i in range(1, 5):
         day = tbll[i]
-        dayl = [DAYNAMES[i]]
+        dayl = []
         for j in range(1, len(day)):
             text = day[j]
             if "whole school assembly" in text.lower():
@@ -259,13 +264,7 @@ def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
     return res
 
 
-def main() -> None:
-    logging.basicConfig(level=logging.INFO)
-
-    today = datetime.datetime.today().strftime("%Y%m%d")
-    config = ConfigParser()
-    config.read("config.ini")
-
+def main(date: str, config: ConfigParser) -> None:
     logger.info("Acquiring token")
     token = acquire_token(config)
 
@@ -273,34 +272,70 @@ def main() -> None:
     download_share_url(
         token,
         config["the_week_ahead"]["file_url"],
-        config["the_week_ahead"]["local_filename"],
+        os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date),
     )
-
-    os.system("open build/the_week_ahead.pptx")
-    input("Check the week ahead!")
 
     logger.info("Extracting Community Time")
-    community_time = fix_community_time(
-        extract_community_time_from_presentation(config)
-    )
+    try:
+        community_time = fix_community_time(
+            extract_community_time_from_presentation(date, config)
+        )
+    except ValueError:
+        logger.warning(
+            "Irregular Community Time; opening The Week Ahead for manual editing. Press ENTER after saving."
+        )  # TODO: interactive elements in non-interactive functions
+        os.system(
+            "open "
+            + os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
+        )
+        input("PRESS ENTER TO CONTINUE >>>")
+        community_time = fix_community_time(
+            extract_community_time_from_presentation(date, config)
+        )
     logger.info("Extracting AODs")
-    aods = extract_aod_from_presentation(config)
+    aods = extract_aod_from_presentation(date, config)
     logger.info("Extracting menu")
     menu = extract_all_menus(
-        "build/%s-menu-en.pptx" % today, "build/%s-menu-cn.pptx" % today, config
+        "build/%s-menu-en.pptx" % date, "build/%s-menu-cn.pptx" % date, config
     )
 
     logger.info("Packing data")
     data = {
-        "community_time_days": community_time,
+        "community_time": community_time,
         "aods": aods,
         "menu": menu,
     }
 
-    with open(os.path.join("build/", today + "-data.json"), "w") as fd:
-        json.dump(data, fd, ensure_ascii=False, indent=4)
-    logger.info("Data dumped to " + os.path.join("build/", today + "-data.json"))
+    with open(os.path.join("build", "week-" + date + ".json"), "w") as fd:
+        json.dump(data, fd, ensure_ascii=False)
+    logger.info("Data dumped to " + os.path.join("build", "week-" + date + ".json"))
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        logging.basicConfig(level=logging.INFO)
+        parser = argparse.ArgumentParser(
+            description="Weekly script for the Daily Bulletin"
+        )
+        parser.add_argument(
+            "--date",
+            default=None,
+            help="the start of week to generate for, in local time, in YYYY-MM-DD",
+        )
+        parser.add_argument(
+            "--config", default="config.ini", help="path to the configuration file"
+        )
+        args = parser.parse_args()
+        config = ConfigParser()
+        config.read(args.config)
+        if args.date:
+            date = args.date
+        else:
+            now = datetime.datetime.now(pytz.timezone(config["general"]["timezone"]))
+            date = (now + datetime.timedelta(days=(-now.weekday()) % 7)).strftime(
+                "%Y-%m-%d"
+            )
+        logging.info("Generating for %s" % date)
+        main(date.replace("-", ""), config)
+    except KeyboardInterrupt:
+        logging.critical("KeyboardInterrupt")
