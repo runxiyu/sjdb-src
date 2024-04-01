@@ -6,28 +6,30 @@ from datetime import datetime
 import json
 import tempfile
 import pptx  # type: ignore
-import pptx.exc
+import pptx.exc  # type: ignore
 from pprint import pprint
 
 DAYNAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 
-def parse_slide(slide: pptx.slide):
+def parse_slide(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
     for shape in slide.shapes:
         if shape.has_table:
             break
     else:
         raise ValueError("Slide doesn't contain any tables?")
     tbl = shape.table
-    row_count = len(tbl.rows)
-    col_count = len(tbl.columns)
+    row_count: int = len(tbl.rows)
+    col_count: int = len(tbl.columns)
     tbll = []
     for r in range(row_count):
-        row = [""] * col_count
+        row: list[Optional[tuple[str, int, int, str]]] = [None] * col_count
         old_cell_text = ""
         for c in range(col_count):
             cell_text = ""
             cell = tbl.cell(r, c)
+            assert type(cell.span_height) is int
+            assert type(cell.span_width) is int
             paragraphs = cell.text_frame.paragraphs
             for paragraph in paragraphs:
                 for run in paragraph.runs:
@@ -40,25 +42,22 @@ def parse_slide(slide: pptx.slide):
             )
             old_cell_text = cell_text
         tbll.append(row)
+    pprint(tbll)
+    exit(1)
     return tbll
 
 
-def zero_list(l):
-    return [
-        (
-            zero_list(i)
-            if (type(i) is list or type(i) is tuple or type(i) is set)
-            else ""
-        )
-        for i in l
-    ]
+def zero_list(l: list[Any]) -> list[Any]:
+    return [(zero_list(i) if (isinstance(i, list)) else "") for i in l]
 
 
-def equal_shapes(a, b):
+def equal_shapes(a: list[Any], b: list[Any]) -> bool:
     return zero_list(a) == zero_list(b)
 
 
-def parse_meal_tables(tbl):
+def parse_meal_tables(
+    tbl: list[list[tuple[str, int, int, str]]]
+) -> list[list[list[str]]]:
     windows = []
     for j in range(1, len(tbl)):
         cell = tbl[j][0]
@@ -66,7 +65,7 @@ def parse_meal_tables(tbl):
             windows.append((j, j - 1 + cell[1]))
 
     days = ["Mon", "Tue", "Wed", "Thu", "Fri"]
-    daysmenus = [[], [], [], [], []]
+    daysmenus: list[list[list[str]]] = [[], [], [], [], []]
 
     assert len(tbl[0]) == 6
 
@@ -83,7 +82,9 @@ def parse_meal_tables(tbl):
     return daysmenus
 
 
-def combine_parsed_meal_tables(en, cn):
+def combine_parsed_meal_tables(
+    en: list[list[list[str]]], cn: list[list[list[str]]]
+) -> list[list[list[str]]]:
     if not equal_shapes(cn, en):
         raise ValueError("Augmented menus not in the same shape")
 
@@ -98,14 +99,12 @@ def combine_parsed_meal_tables(en, cn):
 
 def extract_menu(
     filename_en: str, filename_cn: str, config: ConfigParser
-) -> list[list[str]]:
+) -> tuple[list[list[list[str]]], list[list[list[str]]], list[list[list[str]]]]:
     try:
         enprs = pptx.Presentation(filename_en)
         cnprs = pptx.Presentation(filename_cn)
     except pptx.exc.PackageNotFoundError:
-        raise ValueError(
-            "Presentation path %s doesn't exist or is broken" % filename
-        ) from None
+        raise ValueError("Presentation path doesn't exist or is broken") from None
 
     breakfast = combine_parsed_meal_tables(
         parse_meal_tables(

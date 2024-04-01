@@ -68,7 +68,7 @@ def download_the_week_ahead(
 
 def extract_community_time_from_presentation(config: ConfigParser) -> list[list[str]]:
     from pptx import Presentation  # type: ignore
-    import pptx.exc
+    import pptx.exc  # type: ignore
 
     try:
         prs = Presentation(config["the_week_ahead"]["local_filename"])
