@@ -50,6 +50,7 @@
 	<br />
 	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是每周展望的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="">分享灵感</a>、<a href="">提出建议</a>或<a href="">退订</a>。
 	</p>
+	{% if community_time %}
 	<h2>Community Time 午休时间</h2>
 	<!---->
 	<table>
@@ -65,53 +66,54 @@
 		</thead>
 		<tbody>
 			<tr class="today">
-				<th scope="row">{{ community_time_days[0][0] }}</th>
-				{% if (community_time_days[0][1] == community_time_days[0][2] == community_time_days[0][3] == community_time_days[0][4]) %}
-					<td colspan="4">{{ community_time_days[0][1] }}</td>
-				{% elif (community_time_days[0][1] == community_time_days[0][2]) and (community_time_days[0][3] == community_time_days[0][4]) %}
-					<td colspan="2">{{ community_time_days[0][1] }}</td>
-					<td colspan="2">{{ community_time_days[0][3] }}</td>
-				{% elif community_time_days[0][1] == community_time_days[0][2] %}
-					<td colspan="2">{{ community_time_days[0][1] }}</td>
-					<td colspan="1">{{ community_time_days[0][3] }}</td>
-					<td colspan="1">{{ community_time_days[0][4] }}</td>
-				{% elif community_time_days[0][3] == community_time_days[0][4] %}
-					<td colspan="1">{{ community_time_days[0][1] }}</td>
-					<td colspan="1">{{ community_time_days[0][2] }}</td>
-					<td colspan="2">{{ community_time_days[0][3] }}</td>
+				<th scope="row">???</th>
+				{% if (community_time[0][0] == community_time[0][1] == community_time[0][2] == community_time[0][3]) %}
+					<td colspan="4">{{ community_time[0][0] }}</td>
+				{% elif (community_time[0][0] == community_time[0][1]) and (community_time[0][2] == community_time[0][3]) %}
+					<td colspan="2">{{ community_time[0][0] }}</td>
+					<td colspan="2">{{ community_time[0][2] }}</td>
+				{% elif community_time[0][0] == community_time[0][1] %}
+					<td colspan="2">{{ community_time[0][0] }}</td>
+					<td colspan="1">{{ community_time[0][2] }}</td>
+					<td colspan="1">{{ community_time[0][3] }}</td>
+				{% elif community_time[0][2] == community_time[0][3] %}
+					<td colspan="1">{{ community_time[0][0] }}</td>
+					<td colspan="1">{{ community_time[0][1] }}</td>
+					<td colspan="2">{{ community_time[0][2] }}</td>
 				{% else %}
-					<td colspan="1">{{ community_time_days[0][1] }}</td>
-					<td colspan="1">{{ community_time_days[0][2] }}</td>
-					<td colspan="1">{{ community_time_days[0][3] }}</td>
-					<td colspan="1">{{ community_time_days[0][4] }}</td>
+					<td colspan="1">{{ community_time[0][0] }}</td>
+					<td colspan="1">{{ community_time[0][1] }}</td>
+					<td colspan="1">{{ community_time[0][2] }}</td>
+					<td colspan="1">{{ community_time[0][3] }}</td>
 				{% endif %}
 			</tr>
-			{% for community_time_day in community_time_days[1:] %}
+			{% for community_time_day in community_time[1:] %}
 				<tr class="not-today">
-					<th scope="row">{{ community_time_day[0] }}</th>
-					{% if (community_time_day[1] == community_time_day[2] == community_time_day[3] == community_time_day[4]) %}
-						<td colspan="4">{{ community_time_day[1] }}</td>
-					{% elif (community_time_day[1] == community_time_day[2]) and (community_time_day[3] == community_time_day[4]) %}
-						<td colspan="2">{{ community_time_day[1] }}</td>
-						<td colspan="2">{{ community_time_day[3] }}</td>
-					{% elif community_time_day[1] == community_time_day[2] %}
-						<td colspan="2">{{ community_time_day[1] }}</td>
-						<td colspan="1">{{ community_time_day[3] }}</td>
-						<td colspan="1">{{ community_time_day[4] }}</td>
-					{% elif community_time_day[3] == community_time_day[4] %}
-						<td colspan="1">{{ community_time_day[1] }}</td>
+					<th scope="row">???</th>
+					{% if (community_time_day[0] == community_time_day[1] == community_time_day[2] == community_time_day[3]) %}
+						<td colspan="4">{{ community_time_day[0] }}</td>
+					{% elif (community_time_day[0] == community_time_day[1]) and (community_time_day[2] == community_time_day[3]) %}
+						<td colspan="2">{{ community_time_day[0] }}</td>
+						<td colspan="2">{{ community_time_day[2] }}</td>
+					{% elif community_time_day[0] == community_time_day[1] %}
+						<td colspan="2">{{ community_time_day[0] }}</td>
 						<td colspan="1">{{ community_time_day[2] }}</td>
-						<td colspan="2">{{ community_time_day[3] }}</td>
+						<td colspan="1">{{ community_time_day[3] }}</td>
+					{% elif community_time_day[2] == community_time_day[3] %}
+						<td colspan="1">{{ community_time_day[0] }}</td>
+						<td colspan="1">{{ community_time_day[1] }}</td>
+						<td colspan="2">{{ community_time_day[2] }}</td>
 					{% else %}
+						<td colspan="1">{{ community_time_day[0] }}</td>
 						<td colspan="1">{{ community_time_day[1] }}</td>
 						<td colspan="1">{{ community_time_day[2] }}</td>
 						<td colspan="1">{{ community_time_day[3] }}</td>
-						<td colspan="1">{{ community_time_day[4] }}</td>
 					{% endif %}
 				</tr>
 			{% endfor %} <!-- TODO -->
 		</tbody>
 	</table>
+	{% endif %}
 	<h2>Delicious Dinings 今日佳肴</h2>
 	<table>
 		<colgroup>
