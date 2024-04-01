@@ -153,18 +153,26 @@ def encode_sharing_url(url: str) -> str:
 
 
 def download_share_url(
-    token: str, url: str, local_filename: str, chunk_size: int = 131072
+    token: str, url: str, local_filename: str, chunk_size: int = 1310720
 ) -> None:
+    logger.debug("Retreiving direct download URL")
     download_direct_url = requests.get(
         "https://graph.microsoft.com/v1.0/shares/%s/driveItem"
         % encode_sharing_url(url),
         headers={"Authorization": "Bearer " + token},
     ).json()["@microsoft.graph.downloadUrl"]
+    logger.debug("Making direct download request")
     r = requests.get(download_direct_url, stream=True)
+    downloaded_size = 0
+    target_size = int(r.headers.get("content-length", 0))
+    logger.debug("Total size %d" % target_size)
     with open(local_filename, "wb") as f:
         for chunk in r.iter_content(chunk_size=chunk_size):
             if chunk:
                 f.write(chunk)
+            downloaded_size += chunk_size
+            logger.debug("Downloaded %d of %d" % (downloaded_size, target_size))
+    logger.debug("Download finished")
 
 
 def extract_community_time_from_presentation(
@@ -310,14 +318,14 @@ def main(stddate: str, config: ConfigParser) -> None:
         "menu": menu,
     }
 
-    with open(os.path.join("build", "week-" + date + ".json"), "w") as fd:
+    with open(os.path.join(config["general"]["build_path"], "week-" + date + ".json"), "w") as fd:
         json.dump(data, fd, ensure_ascii=False)
-    logger.info("Data dumped to " + os.path.join("build", "week-" + date + ".json"))
+    logger.info("Data dumped to " + os.path.join(config["general"]["build_path"], "week-" + date + ".json"))
 
 
 if __name__ == "__main__":
     try:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.DEBUG)
         parser = argparse.ArgumentParser(
             description="Weekly script for the Daily Bulletin"
         )
