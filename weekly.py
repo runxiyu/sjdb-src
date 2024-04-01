@@ -297,7 +297,9 @@ def main(stddate: str, config: ConfigParser) -> None:
     aods = extract_aod_from_presentation(date, config)
     logger.info("Extracting menu")
     menu = extract_all_menus(
-        "build/%s-menu-en.pptx" % date, "build/%s-menu-cn.pptx" % date, config
+        os.path.join(config["general"]["build_path"], "menu-%s-en.pptx" % date),
+        os.path.join(config["general"]["build_path"], "menu-%s-cn.pptx" % date),
+        config
     )
 
     logger.info("Packing data")
@@ -323,6 +325,8 @@ if __name__ == "__main__":
             "--date",
             default=None,
             help="the start of week to generate for, in local time, in YYYY-MM-DD",
+            # TODO: Verify validity of date
+            # TODO: Verify consistency of date elsewhere
         )
         parser.add_argument(
             "--config", default="config.ini", help="path to the configuration file"
