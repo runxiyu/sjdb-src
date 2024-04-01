@@ -27,7 +27,7 @@ def acquire_token(config: ConfigParser) -> str:
 
 
 # TODO
-def something(token: str) -> dict[str, Any]:
+def something(token: str) -> Any:
     return requests.get(
         "https://graph.microsoft.com/v1.0/me",
         headers={"Authorization": "Bearer " + token},
