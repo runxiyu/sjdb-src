@@ -265,17 +265,15 @@ def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
 
 def main(stddate: str, config: ConfigParser) -> None:
     date = stddate.replace("-", "")
-    logger.info("Acquiring token")
-    token = acquire_token(config)
-
-    logger.info("Downloading The Week Ahead")
-
     logger.info("Extracting Community Time")
     try:
         prs = pptx.Presentation(
             os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
         )
     except pptx.exc.PackageNotFoundError:
+        logger.info("Acquiring token")
+        token = acquire_token(config)
+        logger.info("Downloading The Week Ahead")
         download_share_url(
             token,
             config["the_week_ahead"]["file_url"],
