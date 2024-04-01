@@ -26,8 +26,12 @@ you complete these settings, if you really want to verify them.
 		{
 			"resourceAppId": "00000003-0000-0000-c000-000000000000",
 			"resourceAccess": [
-				{
+                {
 					"id": "2b9c4092-424d-4249-948d-b43879977640",
+					"type": "Scope"
+				},
+				{
+					"id": "df85f4d6-205c-4ac5-a5ea-6bf408dba283",
 					"type": "Scope"
 				},
 				{
@@ -36,6 +40,10 @@ you complete these settings, if you really want to verify them.
 				},
 				{
 					"id": "e383f46e-2787-4529-855e-0e479a3ffac0",
+					"type": "Scope"
+				},
+				{
+					"id": "205e70e5-aba6-4c52-a976-6d2d46c48043",
 					"type": "Scope"
 				},
 				{

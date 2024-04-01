@@ -39,7 +39,7 @@ def test_login(
     if "access_token" in result:
         token = result["access_token"]
     else:
-        raise ValueError("Authentication error in password login")
+        raise ValueError("Authentication error in password login", result)
 
     graph_response = requests.get(
         "https://graph.microsoft.com/v1.0/me",
