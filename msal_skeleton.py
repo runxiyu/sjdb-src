@@ -21,9 +21,14 @@ def acquire_token(app: msal.PublicClientApplication, config: ConfigParser) -> st
     else:
         raise ValueError("Authentication error in password login")
 
+
 # TODO
 def something(token: str) -> dict[str, Any]:
-    return requests.get("https://graph.microsoft.com/v1.0/me", headers={"Authorization": "Bearer " + token}).json()
+    return requests.get(
+        "https://graph.microsoft.com/v1.0/me",
+        headers={"Authorization": "Bearer " + token},
+    ).json()
+
 
 def main() -> None:
     config = ConfigParser()

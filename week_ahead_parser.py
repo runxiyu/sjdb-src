@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pprint import pprint # FIXME
+from pprint import pprint  # FIXME
 import logging
 import msal  # type: ignore
 import requests
@@ -15,6 +15,7 @@ import pptx.exc  # type: ignore
 
 DAYNAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
+
 def acquire_token(app: msal.PublicClientApplication, config: ConfigParser) -> str:
     result = app.acquire_token_by_username_password(
         config["credentials"]["username"],
@@ -28,17 +29,26 @@ def acquire_token(app: msal.PublicClientApplication, config: ConfigParser) -> st
     else:
         raise ValueError("Authentication error in password login")
 
+
 def encode_sharing_url(url: str) -> str:
-    return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip("=")
+    return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip(
+        "="
+    )
+
 
 def download_share_url(token: str, url: str, local_filename: str) -> None:
-    download_direct_url = requests.get("https://graph.microsoft.com/v1.0/shares/%s/driveItem" % encode_sharing_url(url), headers={"Authorization": "Bearer " + token}).json()["@microsoft.graph.downloadUrl"]
-    r = requests.get(download_direct_url, stream = True) 
+    download_direct_url = requests.get(
+        "https://graph.microsoft.com/v1.0/shares/%s/driveItem"
+        % encode_sharing_url(url),
+        headers={"Authorization": "Bearer " + token},
+    ).json()["@microsoft.graph.downloadUrl"]
+    r = requests.get(download_direct_url, stream=True)
     with open(local_filename, "wb") as f:
-        for chunk in r.iter_content(chunk_size = 1024**2):
+        for chunk in r.iter_content(chunk_size=1024**2):
             if chunk:
                 print(".")
                 f.write(chunk)
+
 
 def extract_community_time_from_presentation(config: ConfigParser) -> list[list[str]]:
 
@@ -132,6 +142,7 @@ def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
         res.append(dayl)
     return res
 
+
 def main() -> None:
     config = ConfigParser()
     config.read("config.ini")
@@ -140,7 +151,11 @@ def main() -> None:
         authority=config["credentials"]["authority"],
     )
     token = acquire_token(app, config)
-    download_share_url(token, config["the_week_ahead"]["file_url"], config["the_week_ahead"]["local_filename"])
+    download_share_url(
+        token,
+        config["the_week_ahead"]["file_url"],
+        config["the_week_ahead"]["local_filename"],
+    )
     data = {
         "community_time_days": fix_community_time(
             extract_community_time_from_presentation(config)
@@ -150,6 +165,7 @@ def main() -> None:
     today = datetime.datetime.today().strftime("%Y%m%d")
     with open(os.path.join("build/", today + "-data.json"), "w") as fd:
         json.dump(data, fd)
+
 
 if __name__ == "__main__":
     main()
