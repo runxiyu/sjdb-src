@@ -1,74 +1,46 @@
 from __future__ import annotations
-from typing import Optional, Any
+from pprint import pprint # FIXME
+import logging
+import msal  # type: ignore
+import requests
+import datetime
 import os
 from configparser import ConfigParser
-from datetime import datetime
+from typing import Any, Optional
 import json
-import tempfile
-import requests.exceptions
+import base64
+from pptx import Presentation  # type: ignore
+import pptx.exc  # type: ignore
+
 
 DAYNAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-
-def download_from_sharepoint(
-    sharepoint_site_url: str,
-    sharing_link_url: str,
-    credentials: tuple[str, str],
-    output_to: Optional[str] = None,
-) -> str:
-    # TODO: Is the return type correct?
-    from office365.sharepoint.client_context import ClientContext  # type: ignore
-    from office365.runtime.auth.user_credential import UserCredential  # type: ignore
-
-    client = ClientContext(sharepoint_site_url).with_credentials(
-        UserCredential(*credentials)
+def acquire_token(app: msal.PublicClientApplication, config: ConfigParser) -> str:
+    result = app.acquire_token_by_username_password(
+        config["credentials"]["username"],
+        config["credentials"]["password"],
+        scopes=config["credentials"]["scope"].split(" "),
     )
-    if not output_to:
-        fd, output_to = tempfile.mkstemp()
-        # TODO: Is it safe to just discard fd?
 
-    with open(output_to, "wb") as local_file:
-        try:
-            client.web.get_file_by_guest_url(sharing_link_url).download(
-                local_file
-            ).execute_query()
-        except (
-            requests.exceptions.SSLError,
-            requests.exceptions.ConnectionError,
-            AttributeError,
-        ):
-            raise ConnectionError from None
-        except IndexError:
-            raise ValueError(
-                "SharePoint authentication failure or other error"
-            ) from None
-    return output_to
+    if "access_token" in result:
+        assert type(result["access_token"]) is str
+        return result["access_token"]
+    else:
+        raise ValueError("Authentication error in password login")
 
+def encode_sharing_url(url: str) -> str:
+    return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip("=")
 
-def download_the_week_ahead(
-    config: ConfigParser,
-) -> None:
-    credentials = (config["credentials"]["username"], config["credentials"]["password"])
-    sharepoint_site_url = config["the_week_ahead"]["site_url"]
-    sharing_link_url = config["the_week_ahead"]["file_url"]
-    output_to = config["the_week_ahead"]["local_filename"]
-    try:
-        download_from_sharepoint(
-            sharepoint_site_url, sharing_link_url, credentials, output_to
-        )
-    except ConnectionError:
-        raise ConnectionError(
-            "Unable to download The Week Ahead: Connection failed?"
-        ) from None
-    except ValueError:
-        raise ValueError(
-            "Unable to download The Week Ahead: Invalid credentials?"
-        ) from None
-
+def download_share_url(token: str, url: str, local_filename: str) -> None:
+    download_direct_url = requests.get("https://graph.microsoft.com/v1.0/shares/%s/driveItem" % encode_sharing_url(url), headers={"Authorization": "Bearer " + token}).json()["@microsoft.graph.downloadUrl"]
+    r = requests.get(download_direct_url, stream = True) 
+    with open(local_filename, "wb") as f:
+        for chunk in r.iter_content(chunk_size = 1024**2):
+            if chunk:
+                print(".")
+                f.write(chunk)
 
 def extract_community_time_from_presentation(config: ConfigParser) -> list[list[str]]:
-    from pptx import Presentation  # type: ignore
-    import pptx.exc  # type: ignore
 
     try:
         prs = Presentation(config["the_week_ahead"]["local_filename"])
@@ -107,7 +79,6 @@ def extract_community_time_from_presentation(config: ConfigParser) -> list[list[
 
 
 def extract_aod_from_presentation(config: ConfigParser) -> list[str]:
-    from pptx import Presentation
 
     prs = Presentation(config["the_week_ahead"]["local_filename"])
     slide = prs.slides[int(config["the_week_ahead"]["aod_page_number"])]
@@ -161,21 +132,24 @@ def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
         res.append(dayl)
     return res
 
-
 def main() -> None:
-    today = datetime.today().strftime("%Y%m%d")
     config = ConfigParser()
     config.read("config.ini")
-    download_the_week_ahead(config)
+    app = msal.PublicClientApplication(
+        config["credentials"]["client_id"],
+        authority=config["credentials"]["authority"],
+    )
+    token = acquire_token(app, config)
+    download_share_url(token, config["the_week_ahead"]["file_url"], config["the_week_ahead"]["local_filename"])
     data = {
         "community_time_days": fix_community_time(
             extract_community_time_from_presentation(config)
         ),
         "aods": extract_aod_from_presentation(config),
     }
+    today = datetime.datetime.today().strftime("%Y%m%d")
     with open(os.path.join("build/", today + "-data.json"), "w") as fd:
         json.dump(data, fd)
-
 
 if __name__ == "__main__":
     main()
