@@ -12,7 +12,7 @@ from pprint import pprint
 DAYNAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 
-def parse_slide(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
+def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
     for shape in slide.shapes:
         if shape.has_table:
             break
@@ -42,8 +42,6 @@ def parse_slide(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
             )
             old_cell_text = cell_text
         tbll.append(row)
-    pprint(tbll)
-    exit(1)
     return tbll
 
 
@@ -97,44 +95,30 @@ def combine_parsed_meal_tables(
     return c
 
 
-def extract_menu(
+def extract_all_menus(
     filename_en: str, filename_cn: str, config: ConfigParser
-) -> tuple[list[list[list[str]]], list[list[list[str]]], list[list[list[str]]]]:
+) -> list[list[list[list[str]]]]:
     try:
         enprs = pptx.Presentation(filename_en)
         cnprs = pptx.Presentation(filename_cn)
     except pptx.exc.PackageNotFoundError:
         raise ValueError("Presentation path doesn't exist or is broken") from None
 
-    breakfast = combine_parsed_meal_tables(
-        parse_meal_tables(
-            parse_slide(
-                enprs.slides[int(config["weekly_menu"]["breakfast_page_number"])]
-            )
-        ),
-        parse_meal_tables(
-            parse_slide(
-                cnprs.slides[int(config["weekly_menu"]["breakfast_page_number"])]
-            )
-        ),
-    )
-    lunch = combine_parsed_meal_tables(
-        parse_meal_tables(
-            parse_slide(enprs.slides[int(config["weekly_menu"]["lunch_page_number"])])
-        ),
-        parse_meal_tables(
-            parse_slide(cnprs.slides[int(config["weekly_menu"]["lunch_page_number"])])
-        ),
-    )
-    dinner = combine_parsed_meal_tables(
-        parse_meal_tables(
-            parse_slide(enprs.slides[int(config["weekly_menu"]["dinner_page_number"])])
-        ),
-        parse_meal_tables(
-            parse_slide(cnprs.slides[int(config["weekly_menu"]["dinner_page_number"])])
-        ),
-    )
-    return breakfast, lunch, dinner
+    return [
+        combine_parsed_meal_tables(
+            parse_meal_tables(
+                slide_to_srep(
+                    enprs.slides[int(config["weekly_menu"]["%s_page_number" % meal])]
+                )
+            ),
+            parse_meal_tables(
+                slide_to_srep(
+                    cnprs.slides[int(config["weekly_menu"]["%s_page_number" % meal])]
+                )
+            ),
+        )
+        for meal in ["breakfast", "lunch", "dinner"]
+    ]
 
 
 def main() -> None:
@@ -143,7 +127,7 @@ def main() -> None:
     config.read("config.ini")
     open("build/menu.json", "w").write(
         json.dumps(
-            extract_menu(
+            extract_all_menus(
                 "build/20240408-menu-en.pptx", "build/20240408-menu-cn.pptx", config
             ),
             ensure_ascii=False,
