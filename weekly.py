@@ -210,7 +210,9 @@ def extract_community_time_from_presentation(
     return tbll
 
 
-def extract_aod_from_presentation(date: str, prs:pptx.Presentation, config: ConfigParser) -> list[str]:
+def extract_aod_from_presentation(
+    date: str, prs: pptx.Presentation, config: ConfigParser
+) -> list[str]:
     slide = prs.slides[int(config["the_week_ahead"]["aod_page_number"])]
 
     aods = ["", "", "", ""]
