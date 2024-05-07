@@ -5,7 +5,7 @@ import json
 import argparse
 import logging
 import datetime
-import pytz
+import zoneinfo
 import os
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ DAYNAMES_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 def main(stddate: str, config: ConfigParser) -> None:
     date = stddate.replace("-", "")
     dtdate = datetime.datetime.strptime(stddate, "%Y-%m-%d").replace(
-        tzinfo=pytz.timezone(config["general"]["timezone"])
+        tzinfo=zoneinfo.ZoneInfo(config["general"]["timezone"])
     )
     weekday_enum = dtdate.weekday()
     weekday = DAYNAMES[weekday_enum]

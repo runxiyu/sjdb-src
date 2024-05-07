@@ -1,2 +1,11 @@
+configparser
+argparse
+logging
 msal
 requests
+jinja2
+flask
+argparse
+configparser
+logging
+python-pptx

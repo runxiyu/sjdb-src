@@ -9,7 +9,7 @@ import logging
 import msal  # type: ignore
 import requests
 import datetime
-import pytz
+import zoneinfo
 import os
 import json
 import base64
@@ -353,7 +353,7 @@ if __name__ == "__main__":
         if args.date:
             date = args.date
         else:
-            now = datetime.datetime.now(pytz.timezone(config["general"]["timezone"]))
+            now = datetime.datetime.now(zoneinfo.ZoneInfo(config["general"]["timezone"]))
             date = (now + datetime.timedelta(days=(-now.weekday()) % 7)).strftime(
                 "%Y-%m-%d"
             )
