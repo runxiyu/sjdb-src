@@ -3,5 +3,6 @@ secrets.json
 __pycache__
 .mypy_cache
 config.ini
+venv/
 build/
 .DS_Store
