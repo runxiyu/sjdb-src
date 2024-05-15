@@ -88,13 +88,21 @@ def parse_meal_tables(
     return daysmenus
 
 
-class MealTableShapeError(ValueError): pass
+class MealTableShapeError(ValueError):
+    pass
+
 
 def combine_parsed_meal_tables(
     en: list[list[list[str]]], cn: list[list[list[str]]]
 ) -> list[list[list[list[str]]]]:
     if not equal_shapes(cn, en):
-        raise MealTableShapeError("Augmented menus not in the same shape", zero_list(en), zero_list(cn), en, cn)
+        raise MealTableShapeError(
+            "Augmented menus not in the same shape",
+            zero_list(en),
+            zero_list(cn),
+            en,
+            cn,
+        )
 
     c = zero_list(en)
 
@@ -150,18 +158,24 @@ def extract_all_menus(
     mtable = []
     for meal in ["breakfast", "lunch", "dinner"]:
         try:
-            mtable.append(combine_parsed_meal_tables(
-                parse_meal_tables(
-                    slide_to_srep(
-                        enprs.slides[int(config["weekly_menu"]["%s_page_number" % meal])]
-                    )
-                ),
-                parse_meal_tables(
-                    slide_to_srep(
-                        cnprs.slides[int(config["weekly_menu"]["%s_page_number" % meal])]
-                    )
-                ),
-            ))
+            mtable.append(
+                combine_parsed_meal_tables(
+                    parse_meal_tables(
+                        slide_to_srep(
+                            enprs.slides[
+                                int(config["weekly_menu"]["%s_page_number" % meal])
+                            ]
+                        )
+                    ),
+                    parse_meal_tables(
+                        slide_to_srep(
+                            cnprs.slides[
+                                int(config["weekly_menu"]["%s_page_number" % meal])
+                            ]
+                        )
+                    ),
+                )
+            )
         except MealTableShapeError:
             raise ValueError("Inconsistent shape for %s" % meal)
     assert len(mtable) == 3
@@ -378,7 +392,12 @@ def download_menu(token: str, config: ConfigParser, date: str) -> tuple[str, str
         target_day,
     )
 
-    if all([os.path.isfile(os.path.join(config["general"]["build_path"] ,x)) for x in [fpptxen, fpptxzh, fpdf]]):
+    if all(
+        [
+            os.path.isfile(os.path.join(config["general"]["build_path"], x))
+            for x in [fpptxen, fpptxzh, fpdf]
+        ]
+    ):
         return fpptxen, fpptxzh, fpdf
 
     searched = search_mail(token, config["weekly_menu"]["query_string"])
