@@ -88,11 +88,13 @@ def parse_meal_tables(
     return daysmenus
 
 
+class MealTableShapeError(ValueError): pass
+
 def combine_parsed_meal_tables(
     en: list[list[list[str]]], cn: list[list[list[str]]]
 ) -> list[list[list[list[str]]]]:
     if not equal_shapes(cn, en):
-        raise ValueError("Augmented menus not in the same shape")
+        raise MealTableShapeError("Augmented menus not in the same shape", zero_list(en), zero_list(cn), en, cn)
 
     c = zero_list(en)
 
@@ -145,21 +147,25 @@ def extract_all_menus(
     except pptx.exc.PackageNotFoundError:
         raise ValueError("Presentation path doesn't exist or is broken") from None
 
-    return [
-        combine_parsed_meal_tables(
-            parse_meal_tables(
-                slide_to_srep(
-                    enprs.slides[int(config["weekly_menu"]["%s_page_number" % meal])]
-                )
-            ),
-            parse_meal_tables(
-                slide_to_srep(
-                    cnprs.slides[int(config["weekly_menu"]["%s_page_number" % meal])]
-                )
-            ),
-        )
-        for meal in ["breakfast", "lunch", "dinner"]
-    ]
+    mtable = []
+    for meal in ["breakfast", "lunch", "dinner"]:
+        try:
+            mtable.append(combine_parsed_meal_tables(
+                parse_meal_tables(
+                    slide_to_srep(
+                        enprs.slides[int(config["weekly_menu"]["%s_page_number" % meal])]
+                    )
+                ),
+                parse_meal_tables(
+                    slide_to_srep(
+                        cnprs.slides[int(config["weekly_menu"]["%s_page_number" % meal])]
+                    )
+                ),
+            ))
+        except MealTableShapeError:
+            raise ValueError("Inconsistent shape for %s" % meal)
+    assert len(mtable) == 3
+    return mtable
 
 
 def acquire_token(config: ConfigParser) -> str:
@@ -283,6 +289,7 @@ def get_message(
     token: str,
     hitid: str,
 ) -> bytes:
+    print("Getting message")
     return requests.get(
         "https://graph.microsoft.com/v1.0/me/messages/%s/$value" % hitid,
         headers={"Authorization": "Bearer " + token},
@@ -348,14 +355,31 @@ def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
 
 
 def download_menu(token: str, config: ConfigParser, date: str) -> tuple[str, str, str]:
-    ret: list[Optional[str]] = [None, None, None]
-
     dtuple = date.split("-")
     assert len(dtuple) == 3
 
     target_month = int(dtuple[1])
     target_day = int(dtuple[2])
     target_year_str = dtuple[0]
+
+    fpptxen = "menu-%s%02d%02d-en.pptx" % (
+        target_year_str,
+        target_month,
+        target_day,
+    )
+    fpptxzh = "menu-%s%02d%02d-zh.pptx" % (
+        target_year_str,
+        target_month,
+        target_day,
+    )
+    fpdf = "menu-%s%02d%02d.pdf" % (
+        target_year_str,
+        target_month,
+        target_day,
+    )
+
+    if all([os.path.isfile(os.path.join(config["general"]["build_path"] ,x)) for x in [fpptxen, fpptxzh, fpdf]]):
+        return fpptxen, fpptxzh, fpdf
 
     searched = search_mail(token, config["weekly_menu"]["query_string"])
     for s in filter_mail_results_by_subject_e(
@@ -416,63 +440,35 @@ def download_menu(token: str, config: ConfigParser, date: str) -> tuple[str, str
             ):
                 if "EN" in filename:
                     lang = "en"
+                    formatted_filename = fpptxen
                 elif "CH" or "CN" in filename:
                     lang = "zh"
+                    formatted_filename = fpptxzh
                 else:
                     raise ValueError(
                         "%s does not contain a language specification string", filename
                     )
-                formatted_filename = "menu-%s%02d%02d-%s.pptx" % (
-                    target_year_str,
-                    target_month,
-                    target_day,
-                    lang,
-                )
-                if lang == "en":
-                    if ret[0] is None:
-                        ret[0] = formatted_filename
-                    else:
-                        raise ValueError("Too many %s" % filename)
-                elif lang == "zh":
-                    if ret[1] is None:
-                        ret[1] = formatted_filename
-                    else:
-                        raise ValueError("Too many %s" % filename)
-                else:
-                    raise ValueError("WTF")
             elif part.get_content_type() == "application/pdf":
-                formatted_filename = "menu-%s%02d%02d.pdf" % (
-                    target_year_str,
-                    target_month,
-                    target_day,
-                )
-                if ret[2] is None:
-                    ret[2] = formatted_filename
-                else:
-                    raise ValueError("Too many %s" % filename)
+                formatted_filename = fpdf
 
             with open(
                 os.path.join(config["general"]["build_path"], formatted_filename), "wb"
             ) as w:
                 w.write(pl)
 
-    assert type(ret[0]) is str
-    assert type(ret[1]) is str
-    assert type(ret[2]) is str
-    assert len(ret) == 3
-    return ret[0], ret[1], ret[2]
+    return fpptxen, fpptxzh, fpdf
 
 
 def main(stddate: str, config: ConfigParser) -> None:
     date = stddate.replace("-", "")
+    logger.info("Acquiring token")
+    token = acquire_token(config)
     logger.info("Extracting Community Time")
     try:
         prs = pptx.Presentation(
             os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
         )
     except pptx.exc.PackageNotFoundError:
-        logger.info("Acquiring token")
-        token = acquire_token(config)
         logger.info("Downloading The Week Ahead")
         download_share_url(
             token,
@@ -507,7 +503,7 @@ def main(stddate: str, config: ConfigParser) -> None:
     logger.info("Downloading menu")
 
     en_menu_filename, zh_menu_filename, pdf_menu_filename = download_menu(
-        token, config, date
+        token, config, stddate
     )
 
     # TODO: pdf_menu_filename not parsed!
@@ -530,7 +526,7 @@ def main(stddate: str, config: ConfigParser) -> None:
     with open(
         os.path.join(config["general"]["build_path"], "week-" + date + ".json"), "w"
     ) as fd:
-        json.dump(data, fd, ensure_ascii=False)
+        json.dump(data, fd, ensure_ascii=False, indent="\t")
     logger.info(
         "Data dumped to "
         + os.path.join(config["general"]["build_path"], "week-" + date + ".json")
