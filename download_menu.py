@@ -8,6 +8,10 @@ from typing import Any, Optional, Iterable, Iterator
 import json
 from pprint import pprint
 import re
+import os
+import email
+
+
 
 
 def acquire_token(config: ConfigParser) -> str:
@@ -95,8 +99,12 @@ MONTHS = {
 
 def main() -> None:
     # should be inputs
+    # uh I'm using very inconsistent days and months and in the rest of the
+    # program I'm using datetime objects, can someone make it consistent?
+
     target_month = 5
     target_day = 6
+    target_year_str = datetime.datetime.now().strftime("%Y")
 
     config = ConfigParser()
     config.read("config.ini")
@@ -121,8 +129,45 @@ def main() -> None:
             break
     else:
         raise ValueError("No SJ-menu email found")
+    msg_bytes = get_message(token, s[0]["hitId"])
+    with open(
+        os.path.join(
+            config["general"]["build_path"],
+            "menu-%s%02d%02d.eml"
+            % (target_year_str, target_month, target_day),
+        ),
+        "wb",
+    ) as wf:
+        wf.write(msg_bytes)
 
-    print(get_message(token, s[0]["hitId"]), file=open("poop.eml", "w"))
+    msg = email.message_from_bytes(msg_bytes)
+
+    for part in msg.walk():
+        if part.get_content_type() in ["application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/pdf"]:
+            pl = part.get_payload(decode=True)
+            ft = email.header.decode_header(part.get_filename())
+            assert len(ft) == 1
+            assert len(ft[0]) == 2
+            if type(ft[0][0]) is bytes:
+                filename = ft[0][0].decode(ft[0][1])
+            elif type(ft[0][0]) is str:
+                filename = ft[0][0]
+            else:
+                raise TypeError(ft, "not bytes or str???")
+
+            if part.get_content_type() == "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+                if "EN" in filename:
+                    lang = "en"
+                elif "CH" or "CN" in filename:
+                    lang = "zh"
+                else:
+                    raise ValueError("%s does not contain a language specification string", filename)
+                formatted_filename = "menu-%s%02d%02d-%s.pptx" % (target_year_str, target_month, target_day, lang)
+            elif part.get_content_type() == "application/pdf":
+                formatted_filename = "menu-%s%02d%02d.pdf" % (target_year_str, target_month, target_day)
+
+            with open(os.path.join(config["general"]["build_path"], formatted_filename), "wb") as w:
+                w.write(pl)
 
     # TODO
 
