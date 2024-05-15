@@ -1,9 +1,26 @@
 #!/usr/bin/env python3
+#
+# Weekly script to prepare the YK Pao School Daily Bulletin
+# Copyright (C) 2024  Runxi Yu <https://runxiyu.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
 
 from __future__ import annotations
-from typing import Any, Optional
+from typing import Any, Optional, Iterable, Iterator
 from configparser import ConfigParser
-
+from pprint import pprint
 import argparse
 import logging
 import msal  # type: ignore
@@ -13,10 +30,27 @@ import zoneinfo
 import os
 import json
 import base64
+import email
+import re
 import pptx  # type: ignore
 import pptx.exc  # type: ignore
 
 logger = logging.getLogger(__name__)
+
+MONTHS = {
+    "January": 1,
+    "February": 2,
+    "March": 3,
+    "April": 4,
+    "May": 5,
+    "June": 6,
+    "July": 7,
+    "August": 8,
+    "September": 9,
+    "October": 10,
+    "November": 11,
+    "December": 12,
+}
 
 
 def zero_list(l: list[Any]) -> list[Any]:
@@ -245,6 +279,54 @@ def extract_aod_from_presentation(
         )
 
 
+def get_message(
+    token: str,
+    hitid: str,
+) -> bytes:
+    return requests.get(
+        "https://graph.microsoft.com/v1.0/me/messages/%s/$value" % hitid,
+        headers={"Authorization": "Bearer " + token},
+    ).content
+
+
+def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
+    r = requests.post(
+        "https://graph.microsoft.com/v1.0/search/query",
+        headers={"Authorization": "Bearer " + token},
+        json={
+            "requests": [
+                {
+                    "entityTypes": ["message"],
+                    "query": {"queryString": query_string},
+                    "from": 0,
+                    "size": 15,
+                    "enableTopResults": True,
+                }
+            ]
+        },
+    ).json()["value"][0]["hitsContainers"][0]["hits"]
+    assert type(r) is list
+    assert type(r[0]) is dict
+    return r
+
+
+def filter_mail_results_by_sender(
+    searched: Iterable[dict[str, Any]], sender: str
+) -> Iterator[dict[str, Any]]:
+    for i in searched:
+        if i["resource"]["sender"]["emailAddress"]["address"].lower() == sender.lower():
+            yield i
+
+
+def filter_mail_results_by_subject_e(
+    searched: Iterable[dict[str, Any]], subject_regex: str, srgf: str
+) -> Iterator[tuple[dict[str, Any], list[str]]]:
+    for i in searched:
+        m = re.compile(subject_regex).match(i["resource"]["subject"])
+        if m:
+            yield (i, [m.group(int(x)) for x in srgf.split(" ")])
+
+
 def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
     res = []
     for i in range(1, 5):
@@ -263,6 +345,122 @@ def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
                 dayl.append(text.strip())
         res.append(dayl)
     return res
+
+
+def download_menu(token: str, config: ConfigParser, date: str) -> tuple[str, str, str]:
+    ret: list[Optional[str]] = [None, None, None]
+
+    dtuple = date.split("-")
+    assert len(dtuple) == 3
+
+    target_month = int(dtuple[1])
+    target_day = int(dtuple[2])
+    target_year_str = dtuple[0]
+
+    searched = search_mail(token, config["weekly_menu"]["query_string"])
+    for s in filter_mail_results_by_subject_e(
+        filter_mail_results_by_sender(searched, config["weekly_menu"]["sender"]),
+        config["weekly_menu"]["subject_regex"],
+        srgf=config["weekly_menu"]["subject_regex_four_groups"],
+    ):
+        try:
+            month = MONTHS[s[1][0]]
+        except KeyError:
+            raise ValueError("%s has a sussy month name" % s[0]["resource"]["subject"])
+        try:
+            day = int(s[1][1])
+        except KeyError:
+            raise ValueError("%s has a sussy day" % s[0]["resource"]["subject"])
+        if not 1 < day < 32:
+            raise ValueError("%s has a sussy day" % s[0]["resource"]["subject"])
+        if month == target_month and day == target_day:
+            break
+    else:
+        raise ValueError("No SJ-menu email found")
+    msg_bytes = get_message(token, s[0]["hitId"])
+    with open(
+        os.path.join(
+            config["general"]["build_path"],
+            "menu-%s%02d%02d.eml" % (target_year_str, target_month, target_day),
+        ),
+        "wb",
+    ) as wf:
+        wf.write(msg_bytes)
+
+    msg = email.message_from_bytes(msg_bytes)
+
+    for part in msg.walk():
+        if part.get_content_type() in [
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/pdf",
+        ]:
+            pl = part.get_payload(decode=True)
+            pfn = part.get_filename()
+            if not pfn:
+                raise ValueError("PPTX/PDF doesn't have a filename")
+            ft = email.header.decode_header(pfn)
+            assert len(ft) == 1
+            assert len(ft[0]) == 2
+            if type(ft[0][0]) is bytes:
+                if type(ft[0][1]) is not str:
+                    raise ValueError("Header component for the filename isn't a string")
+                filename = ft[0][0].decode(ft[0][1])
+            elif type(ft[0][0]) is str:
+                filename = ft[0][0]
+            else:
+                raise TypeError(ft, "not bytes or str???")
+
+            if (
+                part.get_content_type()
+                == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            ):
+                if "EN" in filename:
+                    lang = "en"
+                elif "CH" or "CN" in filename:
+                    lang = "zh"
+                else:
+                    raise ValueError(
+                        "%s does not contain a language specification string", filename
+                    )
+                formatted_filename = "menu-%s%02d%02d-%s.pptx" % (
+                    target_year_str,
+                    target_month,
+                    target_day,
+                    lang,
+                )
+                if lang == "en":
+                    if ret[0] is None:
+                        ret[0] = formatted_filename
+                    else:
+                        raise ValueError("Too many %s" % filename)
+                elif lang == "zh":
+                    if ret[1] is None:
+                        ret[1] = formatted_filename
+                    else:
+                        raise ValueError("Too many %s" % filename)
+                else:
+                    raise ValueError("WTF")
+            elif part.get_content_type() == "application/pdf":
+                formatted_filename = "menu-%s%02d%02d.pdf" % (
+                    target_year_str,
+                    target_month,
+                    target_day,
+                )
+                if ret[2] is None:
+                    ret[2] = formatted_filename
+                else:
+                    raise ValueError("Too many %s" % filename)
+
+            with open(
+                os.path.join(config["general"]["build_path"], formatted_filename), "wb"
+            ) as w:
+                w.write(pl)
+
+    assert type(ret[0]) is str
+    assert type(ret[1]) is str
+    assert type(ret[2]) is str
+    assert len(ret) == 3
+    return ret[0], ret[1], ret[2]
 
 
 def main(stddate: str, config: ConfigParser) -> None:
@@ -297,7 +495,7 @@ def main(stddate: str, config: ConfigParser) -> None:
             "open "
             + os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
         )
-        input("PRESS ENTER TO CONTINUE >>>")
+        # input("PRESS ENTER TO CONTINUE >>>")
         prs = pptx.Presentation(
             os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
         )
@@ -306,10 +504,18 @@ def main(stddate: str, config: ConfigParser) -> None:
         )
     logger.info("Extracting AODs")
     aods = extract_aod_from_presentation(date, prs, config)
+    logger.info("Downloading menu")
+
+    en_menu_filename, zh_menu_filename, pdf_menu_filename = download_menu(
+        token, config, date
+    )
+
+    # TODO: pdf_menu_filename not parsed!
+
     logger.info("Extracting menu")
     menu = extract_all_menus(
-        os.path.join(config["general"]["build_path"], "menu-%s-en.pptx" % date),
-        os.path.join(config["general"]["build_path"], "menu-%s-cn.pptx" % date),
+        os.path.join(config["general"]["build_path"], en_menu_filename),
+        os.path.join(config["general"]["build_path"], zh_menu_filename),
         config,
     )
 
