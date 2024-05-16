@@ -21,8 +21,10 @@ build system.
 ## GitHub Mirror
 
 Because many contributors use GitHub, there is a
-[GitHub mirror](https://github.com/runxiyu/sjdb-src). You are advised to
-send patches to the [public mailing list](https://lists.sr.ht/~runxiyu/sjdb)
+[GitHub mirror](https://github.com/runxiyu/sjdb-src)
+**which may lag behind the other repositories a little**.
+You are advised to send patches to the
+[public mailing list](https://lists.sr.ht/~runxiyu/sjdb)
 whenever possible, but if you must use GitHub, you could submit a pull
 request, and it will be reviewed (although it would be faster if you
 just email the patch properly).
