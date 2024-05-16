@@ -14,8 +14,8 @@ build system.
 - [Legacy repository](https://git.runxiyu.org/ykps/current/sjdb-legacy.git/)
   ([sr.ht mirror](https://git.sr.ht/~runxiyu/sjdb-legacy))
 - [Issue tracker](https://todo.sr.ht/~runxiyu/sjdb)
-- [Public mailing list](https://lists.sr.ht/~runxiyu/sjdb) for
-  discussions
+- [Public mailing list](https://lists.sr.ht/~runxiyu/sjdb)
+  for discussions
 - [Private support mailing list](mailto:sjdb@runxiyu.org)
 
 ## GitHub Mirror
