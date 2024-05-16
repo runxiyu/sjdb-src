@@ -1,33 +1,59 @@
 from jinja2 import Template, StrictUndefined
 import os
 import json
-from datetime import datetime
+import datetime
+from configparser import ConfigParser
+import argparse
+import logging
+import zoneinfo
 
-with open("templates/template.html", "r") as template_file:
-    template = Template(template_file.read(), undefined=StrictUndefined)
+
+def main(date: str, config: ConfigParser) -> None:
+
+    with open("templates/template.html", "r") as template_file:
+        template = Template(template_file.read(), undefined=StrictUndefined)
+
+    with open(
+        os.path.join("build", "day-" + date.replace("-", "") + ".json"), "r"
+    ) as fd:
+        data = json.load(fd)
+
+    # extra_data = {
+    # }
+    #
+    # data = data | extra_data
+
+    template.stream(**data).dump("build/test.html")
+
+    # FIXME: Escape the dangerous HTML!
 
 
-with open(
-    os.path.join("build", datetime.today().strftime("%Y%m%d") + "-data.json"), "r"
-) as fd:
-    data = json.load(fd)
-
-extra_data = {
-    "aod": data["aods"][0],  # FIXME
-    "stddate": "2024-04-01",
-    "weekday_english": "Monday",
-    "weekday_abbrev": "Mon",
-    "next_weekday_abbrev": "Tue",
-    "weekday_chinese": "周一",
-    "day_of_cycle": "SA",
-    "today_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
-    "today_lunch": ("1", "2", "3", "4", "5", "6", "7", "8"),
-    "today_dinner": ("1", "2", "3", "4", "5", "6", "7", "8"),
-    "next_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
-}
-
-data = data | extra_data
-
-template.stream(**data).dump("build/test.html")
-
-# FIXME: Escape the dangerous HTML!
+if __name__ == "__main__":
+    try:
+        logging.basicConfig(level=logging.INFO)
+        parser = argparse.ArgumentParser(description="Daily Bulletin Packer")
+        parser.add_argument(
+            "--date",
+            default=None,
+            help="the day to generate for, in local time, in YYYY-MM-DD; defaults to tomorrow",
+            # TODO: Verify validity of date
+            # TODO: Verify consistency of date elsewhere
+        )
+        parser.add_argument(
+            "--config", default="config.ini", help="path to the configuration file"
+        )
+        args = parser.parse_args()
+        config = ConfigParser()
+        config.read(args.config)
+        if args.date:
+            date = args.date
+        else:
+            now = datetime.datetime.now(
+                zoneinfo.ZoneInfo(config["general"]["timezone"])
+            )
+            date = (now + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        logging.info("Generating for day %s" % date)
+        # main(date, config)
+        main(date, config)
+    except KeyboardInterrupt:
+        logging.critical("KeyboardInterrupt")
