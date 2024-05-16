@@ -109,7 +109,7 @@ def combine_parsed_meal_tables(
     for j in range(len(en)):
         for i in range(len(en[j])):
             for k in range(len(en[j][i])):
-                c[j][i][k] = [en[j][i][k], cn[j][i][k]]
+                c[j][i][k] = {"en": en[j][i][k], "zh": cn[j][i][k]}
     return c
 
 
@@ -148,17 +148,17 @@ def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
 
 def extract_all_menus(
     filename_en: str, filename_cn: str, config: ConfigParser
-) -> list[list[list[list[list[str]]]]]:
+) -> dict[str, list[list[list[list[str]]]]]:
     try:
         enprs = pptx.Presentation(filename_en)
         cnprs = pptx.Presentation(filename_cn)
     except pptx.exc.PackageNotFoundError:
         raise ValueError("Presentation path doesn't exist or is broken") from None
 
-    mtable = []
+    mtable = {}
     for meal in ["breakfast", "lunch", "dinner"]:
         try:
-            mtable.append(
+            mtable[meal] = (
                 combine_parsed_meal_tables(
                     parse_meal_tables(
                         slide_to_srep(
