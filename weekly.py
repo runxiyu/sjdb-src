@@ -47,6 +47,8 @@ import pptx  # type: ignore
 import pptx.exc  # type: ignore
 
 logger = logging.getLogger(__name__)
+
+
 class MealTableShapeError(ValueError):
     pass
 
@@ -89,7 +91,10 @@ def generate(
         "%Y%m%d"
     )
     if not os.path.isfile(the_week_ahead_filename):
-        logger.info("The Week Ahead doesn't seem to exist at %s, downloading" % the_week_ahead_filename)
+        logger.info(
+            "The Week Ahead doesn't seem to exist at %s, downloading"
+            % the_week_ahead_filename
+        )
         token = acquire_token(
             graph_client_id,
             graph_authority,
@@ -162,9 +167,7 @@ def generate(
         )
     del the_week_ahead_filename
 
-    aods = extract_aods(
-        the_week_ahead_presentation, the_week_ahead_aod_page_number
-    )
+    aods = extract_aods(the_week_ahead_presentation, the_week_ahead_aod_page_number)
     # We're assuming the the AODs don't need manual intervention. I think that's fair.
     del the_week_ahead_presentation
     logger.info("Finished parsing The Week Ahead")
@@ -181,8 +184,7 @@ def generate(
         )
     except MealTableShapeError as e:
         logger.error(
-            "Invalid menus! Opening both PPTX menus for manual intervention.",
-            e.args[0]
+            "Invalid menus! Opening both PPTX menus for manual intervention.", e.args[0]
         )
         subprocess.run([soffice, menu_en_filename, menu_zh_filename])
         menu = extract_all_menus(
@@ -404,6 +406,7 @@ def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
         tbll.append(row)
     return tbll
 
+
 def combine_parsed_meal_tables(
     en: list[list[list[str]]], cn: list[list[list[str]]]
 ) -> list[list[list[list[str]]]]:
@@ -424,6 +427,7 @@ def combine_parsed_meal_tables(
                 c[j][i][k] = {"en": en[j][i][k], "zh": cn[j][i][k]}
     return c
 
+
 def parse_meal_tables(
     tbl: list[list[tuple[str, int, int, str]]]
 ) -> list[list[list[str]]]:
@@ -443,11 +447,13 @@ def parse_meal_tables(
             for j in range(s, f + 1):
                 if (
                     tbl[j][i][-1].strip()
-                    and tbl[j][i][-1].strip().lower() != "condiments selection"  # seriously
+                    and tbl[j][i][-1].strip().lower()
+                    != "condiments selection"  # seriously
                 ):
                     thiswindow.append(tbl[j][i][-1])
             daysmenus[i - 1].append(thiswindow)
     return daysmenus
+
 
 def extract_all_menus(
     menu_en_filename: str,
@@ -463,23 +469,15 @@ def extract_all_menus(
         raise ValueError("Presentation path doesn't exist or is broken") from None
 
     mtable = {}
-    for meal, pageno in {"breakfast": breakfast_page_number, "lunch": lunch_page_number, "dinner": dinner_page_number}.items():
+    for meal, pageno in {
+        "breakfast": breakfast_page_number,
+        "lunch": lunch_page_number,
+        "dinner": dinner_page_number,
+    }.items():
         try:
             mtable[meal] = combine_parsed_meal_tables(
-                parse_meal_tables(
-                    slide_to_srep(
-                        enprs.slides[
-                            pageno
-                        ]
-                    )
-                ),
-                parse_meal_tables(
-                    slide_to_srep(
-                        zhprs.slides[
-                            pageno
-                        ]
-                    )
-                ),
+                parse_meal_tables(slide_to_srep(enprs.slides[pageno])),
+                parse_meal_tables(slide_to_srep(zhprs.slides[pageno])),
             )
         except MealTableShapeError:
             raise MealTableShapeError(meal) from None
@@ -538,9 +536,8 @@ def extract_community_time(
         res.append(dayl)
     return res
 
-def extract_aods(
-    prs: pptx.Presentation, aod_page_number: int
-) -> list[str]:
+
+def extract_aods(prs: pptx.Presentation, aod_page_number: int) -> list[str]:
     slide = prs.slides[aod_page_number]
     aods = ["", "", "", ""]
     for shape in slide.shapes:
@@ -572,6 +569,7 @@ def extract_aods(
         )
     # TODO: this is one of those places where Monday is *expected* to be the first day.
     # TODO: revamp this. this is ugly!
+
 
 def get_message(
     token: str,
@@ -626,7 +624,9 @@ def download_menu(
         weekly_menu_subject_regex_four_groups,
     ):
         try:
-            subject_1st_month = datetime.datetime.strptime(matched_groups[0], "%B").month
+            subject_1st_month = datetime.datetime.strptime(
+                matched_groups[0], "%B"
+            ).month
             subject_1st_day = int(matched_groups[1])
         except ValueError:
             raise ValueError(hit["resource"]["subject"]) from None
@@ -655,16 +655,14 @@ def download_menu(
             payload_filename_encoded, payload_filename_encoding = payload_filename_mix[
                 0
             ]
-            if type(payload_filename_encoded) is bytes:
-                if type(payload_filename_encoding) is not str:
-                    raise ValueError("header component for the filename isn't a string")
-                filename = payload_filename_encoded.decode(payload_filename_encoding)
-            elif type(payload_filename_encoded) is str:
+
+            if payload_filename_encoding is None:
+                assert type(payload_filename_encoded) is str
                 filename = payload_filename_encoded
+            elif type(payload_filename_encoded) is bytes:  # type: ignore
+                filename = payload_filename_encoded.decode(payload_filename_encoding)  # type: ignore
             else:
-                raise TypeError(
-                    "payload filename %s is not a str or bytes, very unexpected" % filename
-                )
+                raise TypeError("What?")
             if (
                 part.get_content_type()
                 == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
