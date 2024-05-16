@@ -3,19 +3,29 @@
 # Weekly script to prepare the YK Pao School Daily Bulletin
 # Copyright (C) 2024  Runxi Yu <https://runxiyu.org>
 #
-# This program is free software: you can redistribute it and/or modify
+# This program is free softhe_week_aheadre: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
+# the Free Softhe_week_aheadre Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+# Some rules:
+# - Pass localized aware datetime objects around.
+#   Minimize the use of date strings and numbers.
+#   NEVER used naive datetime objects.
+#   Frequently check if the tzinfo is correct or cast the zone.
+# - Delete variables that aren't supposed to be used anymore.
+# - Functions should be short.
+# - Do not pass ConfigParser objects around.
+# - Use meaningful variable names.
+# - Always write type hints.
+# - Use the logger! Try not to print.
 
 from __future__ import annotations
 from typing import Any, Optional, Iterable, Iterator
@@ -25,6 +35,7 @@ import argparse
 import logging
 import msal  # type: ignore
 import requests
+import subprocess
 import datetime
 import zoneinfo
 import os
@@ -36,21 +47,8 @@ import pptx  # type: ignore
 import pptx.exc  # type: ignore
 
 logger = logging.getLogger(__name__)
-
-MONTHS = {
-    "January": 1,
-    "February": 2,
-    "March": 3,
-    "April": 4,
-    "May": 5,
-    "June": 6,
-    "July": 7,
-    "August": 8,
-    "September": 9,
-    "October": 10,
-    "November": 11,
-    "December": 12,
-}
+class MealTableShapeError(ValueError):
+    pass
 
 
 def zero_list(l: list[Any]) -> list[Any]:
@@ -61,59 +59,320 @@ def equal_shapes(a: list[Any], b: list[Any]) -> bool:
     return zero_list(a) == zero_list(b)
 
 
-def parse_meal_tables(
-    tbl: list[list[tuple[str, int, int, str]]]
-) -> list[list[list[str]]]:
-    windows = []
-    for j in range(1, len(tbl)):
-        cell = tbl[j][0]
-        if cell[0] in ["o", "n"]:
-            windows.append((j, j - 1 + cell[1]))
+def generate(
+    datetime_target: datetime.datetime,  # expected to be local time
+    the_week_ahead_url: str,
+    the_week_ahead_community_time_page_number: int,
+    the_week_ahead_aod_page_number: int,
+    weekly_menu_breakfast_page_number: int,
+    weekly_menu_lunch_page_number: int,
+    weekly_menu_dinner_page_number: int,
+    weekly_menu_query_string: str,
+    weekly_menu_sender: str,
+    weekly_menu_subject_regex: str,
+    weekly_menu_subject_regex_four_groups: tuple[int, int, int, int],
+    graph_client_id: str,
+    graph_authority: str,
+    graph_username: str,
+    graph_password: str,
+    graph_scopes: list[str],
+    soffice: str,
+) -> str:
+    if not datetime_target.tzinfo:
+        raise TypeError("Naive datetimes are unsupported")
+    output_filename = "week-%s.json" % datetime_target.strftime("%Y%m%d")
+    logger.info("Output filename: %s" % output_filename)
 
-    days = ["Mon", "Tue", "Wed", "Thu", "Fri"]
-    daysmenus: list[list[list[str]]] = [[], [], [], [], []]
+    token: Optional[str] = None
 
-    assert len(tbl[0]) == 6
-
-    for i in range(1, len(tbl[0])):
-        for s, f in windows:
-            thiswindow = []
-            for j in range(s, f + 1):
-                if (
-                    tbl[j][i][-1].strip()
-                    and tbl[j][i][-1].strip().lower() != "condiments selection"
-                ):
-                    thiswindow.append(tbl[j][i][-1])
-            daysmenus[i - 1].append(thiswindow)
-    return daysmenus
-
-
-class MealTableShapeError(ValueError):
-    pass
-
-
-def combine_parsed_meal_tables(
-    en: list[list[list[str]]], cn: list[list[list[str]]]
-) -> list[list[list[list[str]]]]:
-    if not equal_shapes(cn, en):
-        raise MealTableShapeError(
-            "Augmented menus not in the same shape",
-            zero_list(en),
-            zero_list(cn),
-            en,
-            cn,
+    the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime(
+        "%Y%m%d"
+    )
+    if not os.path.isfile(the_week_ahead_filename):
+        logger.info("The Week Ahead doesn't seem to exist at %s, downloading" % the_week_ahead_filename)
+        token = acquire_token(
+            graph_client_id,
+            graph_authority,
+            graph_username,
+            graph_password,
+            graph_scopes,
         )
+        download_share_url(token, the_week_ahead_url, the_week_ahead_filename)
+        logger.info("Downloaded The Week Ahead to %s" % the_week_ahead_filename)
+        assert os.path.isfile(the_week_ahead_filename)
+    else:
+        logger.info("The Week Ahead already exists at %s" % the_week_ahead_filename)
 
-    c = zero_list(en)
+    menu_en_filename = "menu-%s-en.pptx" % datetime_target.strftime("%Y%m%d")
+    menu_zh_filename = "menu-%s-zh.pptx" % datetime_target.strftime("%Y%m%d")
+    menu_pdf_filename = "menu-%s.pdf" % datetime_target.strftime(
+        "%Y%m%d"
+    )  # TODO: Snacks
+    if not (
+        os.path.isfile(menu_en_filename)
+        and os.path.isfile(menu_zh_filename)
+        and os.path.isfile(menu_pdf_filename)
+    ):
+        logger.info("Not all menus exist, downloading")
+        if not token:
+            token = acquire_token(
+                graph_client_id,
+                graph_authority,
+                graph_username,
+                graph_password,
+                graph_scopes,
+            )
+        download_menu(
+            token,
+            datetime_target,
+            weekly_menu_query_string,
+            weekly_menu_sender,
+            weekly_menu_subject_regex,
+            weekly_menu_subject_regex_four_groups,
+            menu_en_filename,
+            menu_zh_filename,
+            menu_pdf_filename,
+        )
+        assert (
+            os.path.isfile(menu_en_filename)
+            and os.path.isfile(menu_zh_filename)
+            and os.path.isfile(menu_pdf_filename)
+        )
+    else:
+        logger.info("All menus already exist")
+    del token
 
-    for j in range(len(en)):
-        for i in range(len(en[j])):
-            for k in range(len(en[j][i])):
-                c[j][i][k] = {"en": en[j][i][k], "zh": cn[j][i][k]}
-    return c
+    logger.info("Beginning to parse The Week Ahead")
+    the_week_ahead_presentation = pptx.Presentation(the_week_ahead_filename)
+    try:
+        community_time = extract_community_time(
+            the_week_ahead_presentation,
+            the_week_ahead_community_time_page_number,
+        )
+    except ValueError:
+        logger.error(
+            "Invalid community time! Opening The Week Ahead for manual intervention."
+        )
+        del the_week_ahead_presentation
+        subprocess.run([soffice, the_week_ahead_filename])
+        the_week_ahead_presentation = pptx.Presentation(the_week_ahead_filename)
+        community_time = extract_community_time(
+            the_week_ahead_presentation,
+            the_week_ahead_community_time_page_number,
+        )
+    del the_week_ahead_filename
+
+    aods = extract_aods(
+        the_week_ahead_presentation, the_week_ahead_aod_page_number
+    )
+    # We're assuming the the AODs don't need manual intervention. I think that's fair.
+    del the_week_ahead_presentation
+    logger.info("Finished parsing The Week Ahead")
+
+    logger.info("Beginning to extract menus")
+    # TODO: menu_pdf_filename not used
+    try:
+        menu = extract_all_menus(
+            menu_en_filename,
+            menu_zh_filename,
+            weekly_menu_breakfast_page_number,
+            weekly_menu_lunch_page_number,
+            weekly_menu_dinner_page_number,
+        )
+    except MealTableShapeError as e:
+        logger.error(
+            "Invalid menus! Opening both PPTX menus for manual intervention.",
+            e.args[0]
+        )
+        subprocess.run([soffice, menu_en_filename, menu_zh_filename])
+        menu = extract_all_menus(
+            menu_en_filename,
+            menu_zh_filename,
+            weekly_menu_breakfast_page_number,
+            weekly_menu_lunch_page_number,
+            weekly_menu_dinner_page_number,
+        )
+    del menu_en_filename
+    del menu_zh_filename
+    del menu_pdf_filename
+    logger.info("Finished extracting menus")
+
+    final_data = {
+        "start_date": datetime_target.strftime("%Y-%m-%d"),
+        "community_time": community_time,
+        "aods": aods,
+        "menu": menu,
+    }
+
+    with open(output_filename, "w") as fd:
+        json.dump(final_data, fd, ensure_ascii=False, indent="\t")
+    logger.info("Dumped to: %s" % output_filename)
+    return output_filename
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser(description="Weekly script for the Daily Bulletin")
+    parser.add_argument(
+        "--date",
+        default=None,
+        help="the start of the week to generate for, in local time, YYYY-MM-DD",
+    )
+    parser.add_argument(
+        "--config", default="config.ini", help="path to the configuration file"
+    )
+    args = parser.parse_args()
+
+    if args.date:
+        datetime_target_naive = datetime.datetime.strptime(args.date, "%Y-%m-%d")
+    else:
+        datetime_target_naive = None
+    del args.date
+
+    config = ConfigParser()
+    config.read(args.config)
+
+    tzinfo = zoneinfo.ZoneInfo(config["general"]["timezone"])
+    if datetime_target_naive:
+        datetime_target_aware = datetime_target_naive.replace(tzinfo=tzinfo)
+    else:
+        datetime_current_aware = datetime.datetime.now(tz=tzinfo)
+        datetime_target_aware = datetime_current_aware + datetime.timedelta(
+            days=((-datetime_current_aware.weekday()) % 7)
+        )
+        del datetime_current_aware
+    del datetime_target_naive
+    logger.info("Generating for %s" % datetime_target_aware.strftime("%Y-%m-%d %Z"))
+
+    build_path = config["general"]["build_path"]
+    # TODO: check if the build path exists and create it if it doesn't
+    os.chdir(build_path)
+
+    the_week_ahead_url = config["the_week_ahead"]["file_url"]
+    the_week_ahead_community_time_page_number = int(
+        config["the_week_ahead"]["community_time_page_number"]
+    )
+    the_week_ahead_aod_page_number = int(config["the_week_ahead"]["aod_page_number"])
+
+    weekly_menu_breakfast_page_number = int(
+        config["weekly_menu"]["breakfast_page_number"]
+    )
+    weekly_menu_lunch_page_number = int(config["weekly_menu"]["lunch_page_number"])
+    weekly_menu_dinner_page_number = int(config["weekly_menu"]["dinner_page_number"])
+    weekly_menu_query_string = config["weekly_menu"]["query_string"]
+    weekly_menu_sender = config["weekly_menu"]["sender"]
+    weekly_menu_subject_regex = config["weekly_menu"]["subject_regex"]
+    weekly_menu_subject_regex_four_groups_raw = config["weekly_menu"][
+        "subject_regex_four_groups"
+    ].split(" ")
+    weekly_menu_subject_regex_four_groups = tuple(
+        [int(z) for z in weekly_menu_subject_regex_four_groups_raw]
+    )
+    assert len(weekly_menu_subject_regex_four_groups) == 4
+    del weekly_menu_subject_regex_four_groups_raw
+    # weekly_menu_dessert_page_number = config["weekly_menu"]["dessert_page_number"]
+
+    graph_client_id = config["credentials"]["client_id"]
+    graph_authority = config["credentials"]["authority"]
+    graph_username = config["credentials"]["username"]
+    graph_password = config["credentials"]["password"]
+    graph_scopes = config["credentials"]["scope"].split(" ")
+
+    soffice = config["general"]["soffice"]
+
+    # TODO: make a function that checks the configuration
+
+    generate(
+        datetime_target=datetime_target_aware,
+        the_week_ahead_url=the_week_ahead_url,
+        the_week_ahead_community_time_page_number=the_week_ahead_community_time_page_number,
+        the_week_ahead_aod_page_number=the_week_ahead_aod_page_number,
+        weekly_menu_breakfast_page_number=weekly_menu_breakfast_page_number,
+        weekly_menu_lunch_page_number=weekly_menu_lunch_page_number,
+        weekly_menu_dinner_page_number=weekly_menu_dinner_page_number,
+        weekly_menu_query_string=weekly_menu_query_string,
+        weekly_menu_sender=weekly_menu_sender,
+        weekly_menu_subject_regex=weekly_menu_subject_regex,
+        weekly_menu_subject_regex_four_groups=weekly_menu_subject_regex_four_groups,
+        graph_client_id=graph_client_id,
+        graph_authority=graph_authority,
+        graph_username=graph_username,
+        graph_password=graph_password,
+        graph_scopes=graph_scopes,
+        soffice=soffice,
+    )
+    # NOTE: generate() can get the timezone from datetime_target_aware
+    # It returns the generated filename.
+
+
+def encode_sharing_url(url: str) -> str:
+    return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip(
+        "="
+    )
+
+
+def download_share_url(
+    token: str, url: str, local_filename: str, chunk_size: int = 65536
+) -> None:
+    download_direct_url = requests.get(
+        "https://graph.microsoft.com/v1.0/shares/%s/driveItem"
+        % encode_sharing_url(url),
+        headers={"Authorization": "Bearer " + token},
+    ).json()["@microsoft.graph.downloadUrl"]
+    with requests.get(download_direct_url, stream=True) as response:
+        response.raise_for_status()
+        with open(local_filename, "wb") as fd:
+            for chunk in response.iter_content(chunk_size=chunk_size):
+                if chunk:
+                    fd.write(chunk)
+    # TODO: Checl for failures
+
+
+def acquire_token(
+    graph_client_id: str,
+    graph_authority: str,
+    graph_username: str,
+    graph_password: str,
+    graph_scopes: list[str],
+) -> str:
+    app = msal.PublicClientApplication(
+        graph_client_id,
+        authority=graph_authority,
+    )
+    result = app.acquire_token_by_username_password(
+        graph_username, graph_password, scopes=graph_scopes
+    )
+
+    if "access_token" in result:
+        assert type(result["access_token"]) is str
+        return result["access_token"]
+    else:
+        raise ValueError("Authentication error in password login")
+
+
+def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
+    hits = requests.post(
+        "https://graph.microsoft.com/v1.0/search/query",
+        headers={"Authorization": "Bearer " + token},
+        json={
+            "requests": [
+                {
+                    "entityTypes": ["message"],
+                    "query": {"queryString": query_string},
+                    "from": 0,
+                    "size": 15,
+                    "enableTopResults": True,
+                }
+            ]
+        },
+    ).json()["value"][0]["hitsContainers"][0]["hits"]
+    assert type(hits) is list
+    assert type(hits[0]) is dict
+    return hits
 
 
 def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
+    # NOTE: Only processes FIRST table.
     for shape in slide.shapes:
         if shape.has_table:
             break
@@ -145,93 +404,94 @@ def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
         tbll.append(row)
     return tbll
 
+def combine_parsed_meal_tables(
+    en: list[list[list[str]]], cn: list[list[list[str]]]
+) -> list[list[list[list[str]]]]:
+    if not equal_shapes(cn, en):
+        raise MealTableShapeError(
+            "Augmented menus not in the same shape",
+            zero_list(en),
+            zero_list(cn),
+            en,
+            cn,
+        )
+
+    c = zero_list(en)
+
+    for j in range(len(en)):
+        for i in range(len(en[j])):
+            for k in range(len(en[j][i])):
+                c[j][i][k] = {"en": en[j][i][k], "zh": cn[j][i][k]}
+    return c
+
+def parse_meal_tables(
+    tbl: list[list[tuple[str, int, int, str]]]
+) -> list[list[list[str]]]:
+    windows = []
+    for j in range(1, len(tbl)):
+        cell = tbl[j][0]
+        if cell[0] in ["o", "n"]:
+            windows.append((j, j - 1 + cell[1]))
+
+    daysmenus: list[list[list[str]]] = [[], [], [], [], []]
+
+    assert len(tbl[0]) == 6
+
+    for i in range(1, len(tbl[0])):
+        for s, f in windows:
+            thiswindow = []
+            for j in range(s, f + 1):
+                if (
+                    tbl[j][i][-1].strip()
+                    and tbl[j][i][-1].strip().lower() != "condiments selection"  # seriously
+                ):
+                    thiswindow.append(tbl[j][i][-1])
+            daysmenus[i - 1].append(thiswindow)
+    return daysmenus
 
 def extract_all_menus(
-    filename_en: str, filename_cn: str, config: ConfigParser
+    menu_en_filename: str,
+    menu_zh_filename: str,
+    breakfast_page_number: int,
+    lunch_page_number: int,
+    dinner_page_number: int,
 ) -> dict[str, list[list[list[list[str]]]]]:
     try:
-        enprs = pptx.Presentation(filename_en)
-        cnprs = pptx.Presentation(filename_cn)
+        enprs = pptx.Presentation(menu_en_filename)
+        zhprs = pptx.Presentation(menu_zh_filename)
     except pptx.exc.PackageNotFoundError:
         raise ValueError("Presentation path doesn't exist or is broken") from None
 
     mtable = {}
-    for meal in ["breakfast", "lunch", "dinner"]:
+    for meal, pageno in {"breakfast": breakfast_page_number, "lunch": lunch_page_number, "dinner": dinner_page_number}.items():
         try:
             mtable[meal] = combine_parsed_meal_tables(
                 parse_meal_tables(
                     slide_to_srep(
                         enprs.slides[
-                            int(config["weekly_menu"]["%s_page_number" % meal])
+                            pageno
                         ]
                     )
                 ),
                 parse_meal_tables(
                     slide_to_srep(
-                        cnprs.slides[
-                            int(config["weekly_menu"]["%s_page_number" % meal])
+                        zhprs.slides[
+                            pageno
                         ]
                     )
                 ),
             )
         except MealTableShapeError:
-            raise ValueError("Inconsistent shape for %s" % meal)
+            raise MealTableShapeError(meal) from None
     assert len(mtable) == 3
     return mtable
 
 
-def acquire_token(config: ConfigParser) -> str:
-    app = msal.PublicClientApplication(
-        config["credentials"]["client_id"],
-        authority=config["credentials"]["authority"],
-    )
-    result = app.acquire_token_by_username_password(
-        config["credentials"]["username"],
-        config["credentials"]["password"],
-        scopes=config["credentials"]["scope"].split(" "),
-    )
-
-    if "access_token" in result:
-        assert type(result["access_token"]) is str
-        return result["access_token"]
-    else:
-        raise ValueError("Authentication error in password login")
-
-
-def encode_sharing_url(url: str) -> str:
-    return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip(
-        "="
-    )
-
-
-def download_share_url(
-    token: str, url: str, local_filename: str, chunk_size: int = 1310720
-) -> None:
-    logger.debug("Retreiving direct download URL")
-    download_direct_url = requests.get(
-        "https://graph.microsoft.com/v1.0/shares/%s/driveItem"
-        % encode_sharing_url(url),
-        headers={"Authorization": "Bearer " + token},
-    ).json()["@microsoft.graph.downloadUrl"]
-    logger.debug("Making direct download request")
-    r = requests.get(download_direct_url, stream=True)
-    downloaded_size = 0
-    target_size = int(r.headers.get("content-length", 0))
-    logger.debug("Total size %d" % target_size)
-    with open(local_filename, "wb") as f:
-        for chunk in r.iter_content(chunk_size=chunk_size):
-            if chunk:
-                f.write(chunk)
-            downloaded_size += chunk_size
-            logger.debug("Downloaded %d of %d" % (downloaded_size, target_size))
-    logger.debug("Download finished")
-
-
-def extract_community_time_from_presentation(
-    date: str, prs: pptx.Presentation, config: ConfigParser
+def extract_community_time(
+    prs: pptx.Presentation, community_time_page_number: int
 ) -> list[list[str]]:
 
-    slide = prs.slides[int(config["the_week_ahead"]["community_time_page_number"])]
+    slide = prs.slides[community_time_page_number]
     for shape in slide.shapes:
         if not shape.has_table:
             continue
@@ -259,14 +519,29 @@ def extract_community_time_from_presentation(
             row[c] = cell_text
             old_cell_text = cell_text
         tbll.append(row)
-    return tbll
 
+    res = []
+    for i in range(1, 5):
+        day = tbll[i]
+        dayl = []
+        for j in range(1, len(day)):
+            text = day[j]
+            if "whole school assembly" in text.lower():
+                dayl.append("Whole School Assembly")
+            elif (
+                "tutor group check-in" in text.lower()
+                or "follow up day" in text.lower()
+            ):
+                dayl.append("Tutor Time")
+            else:
+                dayl.append(text.strip())
+        res.append(dayl)
+    return res
 
-def extract_aod_from_presentation(
-    date: str, prs: pptx.Presentation, config: ConfigParser
+def extract_aods(
+    prs: pptx.Presentation, aod_page_number: int
 ) -> list[str]:
-    slide = prs.slides[int(config["the_week_ahead"]["aod_page_number"])]
-
+    slide = prs.slides[aod_page_number]
     aods = ["", "", "", ""]
     for shape in slide.shapes:
         if hasattr(shape, "text") and "Monday: " in shape.text:
@@ -295,139 +570,75 @@ def extract_aod_from_presentation(
         raise ValueError(
             "AOD parsing: The Week Ahead's doesn't even include \"Monday\""
         )
-
+    # TODO: this is one of those places where Monday is *expected* to be the first day.
+    # TODO: revamp this. this is ugly!
 
 def get_message(
     token: str,
     hitid: str,
 ) -> bytes:
-    print("Getting message")
     return requests.get(
         "https://graph.microsoft.com/v1.0/me/messages/%s/$value" % hitid,
         headers={"Authorization": "Bearer " + token},
     ).content
 
 
-def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
-    r = requests.post(
-        "https://graph.microsoft.com/v1.0/search/query",
-        headers={"Authorization": "Bearer " + token},
-        json={
-            "requests": [
-                {
-                    "entityTypes": ["message"],
-                    "query": {"queryString": query_string},
-                    "from": 0,
-                    "size": 15,
-                    "enableTopResults": True,
-                }
-            ]
-        },
-    ).json()["value"][0]["hitsContainers"][0]["hits"]
-    assert type(r) is list
-    assert type(r[0]) is dict
-    return r
-
-
 def filter_mail_results_by_sender(
-    searched: Iterable[dict[str, Any]], sender: str
+    original: Iterable[dict[str, Any]], sender: str
 ) -> Iterator[dict[str, Any]]:
-    for i in searched:
-        if i["resource"]["sender"]["emailAddress"]["address"].lower() == sender.lower():
-            yield i
+    for hit in original:
+        if (
+            hit["resource"]["sender"]["emailAddress"]["address"].lower()
+            == sender.lower()
+        ):
+            yield hit
 
 
-def filter_mail_results_by_subject_e(
-    searched: Iterable[dict[str, Any]], subject_regex: str, srgf: str
+# TODO: Potentially replace this with a pattern-match based on strptime().
+def filter_mail_results_by_subject_regex_groups(
+    original: Iterable[dict[str, Any]],
+    subject_regex: str,
+    subject_regex_groups: Iterable[int],
 ) -> Iterator[tuple[dict[str, Any], list[str]]]:
-    for i in searched:
-        m = re.compile(subject_regex).match(i["resource"]["subject"])
-        if m:
-            yield (i, [m.group(int(x)) for x in srgf.split(" ")])
+    for hit in original:
+        logging.debug("Trying %s" % hit["resource"]["subject"])
+        matched = re.compile(subject_regex).match(hit["resource"]["subject"])
+        if matched:
+            yield (hit, [matched.group(group) for group in subject_regex_groups])
 
 
-def fix_community_time(tbll: list[list[str]]) -> list[list[str]]:
-    res = []
-    for i in range(1, 5):
-        day = tbll[i]
-        dayl = []
-        for j in range(1, len(day)):
-            text = day[j]
-            if "whole school assembly" in text.lower():
-                dayl.append("Whole School Assembly")
-            elif (
-                "tutor group check-in" in text.lower()
-                or "follow up day" in text.lower()
-            ):
-                dayl.append("Tutor Time")
-            else:
-                dayl.append(text.strip())
-        res.append(dayl)
-    return res
+def download_menu(
+    token: str,
+    datetime_target: datetime.datetime,
+    weekly_menu_query_string: str,
+    weekly_menu_sender: str,
+    weekly_menu_subject_regex: str,
+    weekly_menu_subject_regex_four_groups: tuple[int, int, int, int],
+    menu_en_filename: str,
+    menu_zh_filename: str,
+    menu_pdf_filename: str,
+) -> None:
+    search_results = search_mail(token, weekly_menu_query_string)
 
-
-def download_menu(token: str, config: ConfigParser, date: str) -> tuple[str, str, str]:
-    dtuple = date.split("-")
-    assert len(dtuple) == 3
-
-    target_month = int(dtuple[1])
-    target_day = int(dtuple[2])
-    target_year_str = dtuple[0]
-
-    fpptxen = "menu-%s%02d%02d-en.pptx" % (
-        target_year_str,
-        target_month,
-        target_day,
-    )
-    fpptxzh = "menu-%s%02d%02d-zh.pptx" % (
-        target_year_str,
-        target_month,
-        target_day,
-    )
-    fpdf = "menu-%s%02d%02d.pdf" % (
-        target_year_str,
-        target_month,
-        target_day,
-    )
-
-    if all(
-        [
-            os.path.isfile(os.path.join(config["general"]["build_path"], x))
-            for x in [fpptxen, fpptxzh, fpdf]
-        ]
-    ):
-        return fpptxen, fpptxzh, fpdf
-
-    searched = search_mail(token, config["weekly_menu"]["query_string"])
-    for s in filter_mail_results_by_subject_e(
-        filter_mail_results_by_sender(searched, config["weekly_menu"]["sender"]),
-        config["weekly_menu"]["subject_regex"],
-        srgf=config["weekly_menu"]["subject_regex_four_groups"],
+    for hit, matched_groups in filter_mail_results_by_subject_regex_groups(
+        filter_mail_results_by_sender(search_results, weekly_menu_sender),
+        weekly_menu_subject_regex,
+        weekly_menu_subject_regex_four_groups,
     ):
         try:
-            month = MONTHS[s[1][0]]
-        except KeyError:
-            raise ValueError("%s has a sussy month name" % s[0]["resource"]["subject"])
-        try:
-            day = int(s[1][1])
-        except KeyError:
-            raise ValueError("%s has a sussy day" % s[0]["resource"]["subject"])
-        if not 1 < day < 32:
-            raise ValueError("%s has a sussy day" % s[0]["resource"]["subject"])
-        if month == target_month and day == target_day:
+            subject_1st_month = datetime.datetime.strptime(matched_groups[0], "%B").month
+            subject_1st_day = int(matched_groups[1])
+        except ValueError:
+            raise ValueError(hit["resource"]["subject"]) from None
+        if (
+            subject_1st_month == datetime_target.month
+            and subject_1st_day == datetime_target.day
+        ):
             break
     else:
         raise ValueError("No SJ-menu email found")
-    msg_bytes = get_message(token, s[0]["hitId"])
-    with open(
-        os.path.join(
-            config["general"]["build_path"],
-            "menu-%s%02d%02d.eml" % (target_year_str, target_month, target_day),
-        ),
-        "wb",
-    ) as wf:
-        wf.write(msg_bytes)
 
+    msg_bytes = get_message(token, hit["hitId"])
     msg = email.message_from_bytes(msg_bytes)
 
     for part in msg.walk():
@@ -435,150 +646,46 @@ def download_menu(token: str, config: ConfigParser, date: str) -> tuple[str, str
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
             "application/pdf",
         ]:
-            pl = part.get_payload(decode=True)
-            pfn = part.get_filename()
-            if not pfn:
-                raise ValueError("PPTX/PDF doesn't have a filename")
-            ft = email.header.decode_header(pfn)
-            assert len(ft) == 1
-            assert len(ft[0]) == 2
-            if type(ft[0][0]) is bytes:
-                if type(ft[0][1]) is not str:
-                    raise ValueError("Header component for the filename isn't a string")
-                filename = ft[0][0].decode(ft[0][1])
-            elif type(ft[0][0]) is str:
-                filename = ft[0][0]
+            payload = part.get_payload(decode=True)
+            payload_filename_encoded = part.get_filename()
+            if not payload_filename_encoded:
+                raise ValueError("pptx/pdf doesn't have a filename, very unexpected")
+            payload_filename_mix = email.header.decode_header(payload_filename_encoded)
+            assert len(payload_filename_mix) == 1
+            payload_filename_encoded, payload_filename_encoding = payload_filename_mix[
+                0
+            ]
+            if type(payload_filename_encoded) is bytes:
+                if type(payload_filename_encoding) is not str:
+                    raise ValueError("header component for the filename isn't a string")
+                filename = payload_filename_encoded.decode(payload_filename_encoding)
+            elif type(payload_filename_encoded) is str:
+                filename = payload_filename_encoded
             else:
-                raise TypeError(ft, "not bytes or str???")
-
+                raise TypeError(
+                    "payload filename %s is not a str or bytes, very unexpected" % filename
+                )
             if (
                 part.get_content_type()
                 == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
             ):
                 if "EN" in filename:
                     lang = "en"
-                    formatted_filename = fpptxen
+                    formatted_filename = menu_en_filename
                 elif "CH" or "CN" in filename:
                     lang = "zh"
-                    formatted_filename = fpptxzh
+                    formatted_filename = menu_zh_filename
                 else:
                     raise ValueError(
-                        "%s does not contain a language specification string", filename
+                        "%s does not contain a language specification string (EN/CH/CN)",
+                        filename,
                     )
             elif part.get_content_type() == "application/pdf":
-                formatted_filename = fpdf
+                formatted_filename = menu_pdf_filename
 
-            with open(
-                os.path.join(config["general"]["build_path"], formatted_filename), "wb"
-            ) as w:
-                w.write(pl)
-
-    return fpptxen, fpptxzh, fpdf
-
-
-def main(stddate: str, config: ConfigParser) -> None:
-    date = stddate.replace("-", "")
-    logger.info("Acquiring token")
-    token = acquire_token(config)
-    logger.info("Extracting Community Time")
-    try:
-        prs = pptx.Presentation(
-            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
-        )
-    except pptx.exc.PackageNotFoundError:
-        logger.info("Downloading The Week Ahead")
-        download_share_url(
-            token,
-            config["the_week_ahead"]["file_url"],
-            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date),
-        )
-        prs = pptx.Presentation(
-            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
-        )
-    try:
-        community_time = fix_community_time(
-            extract_community_time_from_presentation(date, prs, config)
-        )
-    except ValueError:
-        logger.warning(
-            "Irregular Community Time; opening The Week Ahead for manual editing. Press ENTER after saving."
-        )  # TODO: interactive elements in non-interactive functions
-        del prs
-        os.system(
-            "open "
-            + os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
-        )
-        # input("PRESS ENTER TO CONTINUE >>>")
-        prs = pptx.Presentation(
-            os.path.join(config["general"]["build_path"], "twa-%s.pptx" % date)
-        )
-        community_time = fix_community_time(
-            extract_community_time_from_presentation(date, prs, config)
-        )
-    logger.info("Extracting AODs")
-    aods = extract_aod_from_presentation(date, prs, config)
-    logger.info("Downloading menu")
-
-    en_menu_filename, zh_menu_filename, pdf_menu_filename = download_menu(
-        token, config, stddate
-    )
-
-    # TODO: pdf_menu_filename not parsed!
-
-    logger.info("Extracting menu")
-    menu = extract_all_menus(
-        os.path.join(config["general"]["build_path"], en_menu_filename),
-        os.path.join(config["general"]["build_path"], zh_menu_filename),
-        config,
-    )
-
-    logger.info("Packing data")
-    data = {
-        "start_date": stddate,
-        "community_time": community_time,
-        "aods": aods,
-        "menu": menu,
-    }
-
-    with open(
-        os.path.join(config["general"]["build_path"], "week-" + date + ".json"), "w"
-    ) as fd:
-        json.dump(data, fd, ensure_ascii=False, indent="\t")
-    logger.info(
-        "Data dumped to "
-        + os.path.join(config["general"]["build_path"], "week-" + date + ".json")
-    )
+            with open(formatted_filename, "wb") as w:
+                w.write(payload)
 
 
 if __name__ == "__main__":
-    try:
-        logging.basicConfig(level=logging.DEBUG)
-        parser = argparse.ArgumentParser(
-            description="Weekly script for the Daily Bulletin"
-        )
-        parser.add_argument(
-            "--date",
-            default=None,
-            help="the start of week to generate for, in local time, in YYYY-MM-DD",
-            # TODO: Verify validity of date
-            # TODO: Verify consistency of date elsewhere
-        )
-        parser.add_argument(
-            "--config", default="config.ini", help="path to the configuration file"
-        )
-        args = parser.parse_args()
-        config = ConfigParser()
-        config.read(args.config)
-        if args.date:
-            date = args.date
-        else:
-            now = datetime.datetime.now(
-                zoneinfo.ZoneInfo(config["general"]["timezone"])
-            )
-            date = (now + datetime.timedelta(days=(-now.weekday()) % 7)).strftime(
-                "%Y-%m-%d"
-            )
-        logging.info("Generating for %s" % date)
-        main(date, config)
-    except KeyboardInterrupt:
-        logging.critical("KeyboardInterrupt")
+    main()
