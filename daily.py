@@ -88,7 +88,7 @@ def main(stddate: str, config: ConfigParser) -> None:
         "today_breakfast": breakfast_today,
         "today_lunch": lunch_today,
         "today_dinner": dinner_today,
-        "next_breakfast": breakfast_tomorrow
+        "next_breakfast": breakfast_tomorrow,
     }
     with open(
         os.path.join(config["general"]["build_path"], "day-" + date + ".json"), "w"

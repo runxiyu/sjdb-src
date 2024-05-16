@@ -158,23 +158,21 @@ def extract_all_menus(
     mtable = {}
     for meal in ["breakfast", "lunch", "dinner"]:
         try:
-            mtable[meal] = (
-                combine_parsed_meal_tables(
-                    parse_meal_tables(
-                        slide_to_srep(
-                            enprs.slides[
-                                int(config["weekly_menu"]["%s_page_number" % meal])
-                            ]
-                        )
-                    ),
-                    parse_meal_tables(
-                        slide_to_srep(
-                            cnprs.slides[
-                                int(config["weekly_menu"]["%s_page_number" % meal])
-                            ]
-                        )
-                    ),
-                )
+            mtable[meal] = combine_parsed_meal_tables(
+                parse_meal_tables(
+                    slide_to_srep(
+                        enprs.slides[
+                            int(config["weekly_menu"]["%s_page_number" % meal])
+                        ]
+                    )
+                ),
+                parse_meal_tables(
+                    slide_to_srep(
+                        cnprs.slides[
+                            int(config["weekly_menu"]["%s_page_number" % meal])
+                        ]
+                    )
+                ),
             )
         except MealTableShapeError:
             raise ValueError("Inconsistent shape for %s" % meal)
