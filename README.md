@@ -27,4 +27,5 @@ You are advised to send patches to the
 [public mailing list](https://lists.sr.ht/~runxiyu/sjdb)
 whenever possible, but if you must use GitHub, you could submit a pull
 request, and it will be reviewed (although it would be faster if you
-just email the patch properly).
+just email the patch properly). Another GitHub-based workflow would
+be to use git-request-pull to send me a pull request via email.
