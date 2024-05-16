@@ -23,7 +23,7 @@ def main(date: str, config: ConfigParser) -> None:
     #
     # data = data | extra_data
 
-    template.stream(**data).dump("build/test.html")
+    template.stream(**data).dump(os.path.join("build", "sjdb-%s.html" % date.replace("-", "")))
 
     # FIXME: Escape the dangerous HTML!
 
