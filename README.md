@@ -6,17 +6,15 @@ delivered by email every school day. They contain information such as
 itineraries notices, Daily Inspirations, exam schedules (if there are
 exam sessions ongoing), the daily menu, etc.
 
-This repository contains the Daily Bulletin's source code. There
+This repository contains the source code of the modern Daily Bulletin's
+build system.
 
-- The canonical code repository is <https://git.runxiyu.org/ykps/current/sjdb-src.git/>.
-  A mirror is available at <https://git.sr.ht/~runxiyu/sjdb-src>.
-- The legacy bulletin repository is <https://git.runxiyu.org/ykps/current/sjdb-legacy.git/>.
-  A mirror is available at <https://git.sr.ht/~runxiyu/sjdb-legacy>.
-- An issue tracker is available at <https://todo.sr.ht/~runxiyu/sjdb>.
-- A public mailing list is available at <https://lists.sr.ht/~runxiyu/sjdb>
-  for people interested in discussing the project itself.
-  It is not the daily bulletin's distribution list.
-- A private support mailing list is available at [sjdb@runxiyu.org](mailto:sjdb@runxiyu.org).
-  Use this for support requests and security reports.
-  It is not the daily bulletin's distribution list.
+- [Canonical code repository](https://git.runxiyu.org/ykps/current/sjdb-src.git/)
+  ([mirror](https://git.sr.ht/~runxiyu/sjdb-src))
+- [Legacy repository](https://git.runxiyu.org/ykps/current/sjdb-legacy.git/)
+  ([mirror](https://git.sr.ht/~runxiyu/sjdb-legacy))
+- [Issue tracker](https://todo.sr.ht/~runxiyu/sjdb)
+- [Public mailing list](https://lists.sr.ht/~runxiyu/sjdb) for
+  discussions
+- [Private support mailing list](mailto:sjdb@runxiyu.org)
 
