@@ -9,6 +9,7 @@ exam sessions ongoing), the daily menu, etc.
 This repository contains the source code of the modern Daily Bulletin's
 build system.
 
+- [User-facing web page](https://ykps.runxiyu.org/sjdb/)
 - [Canonical code repository](https://git.runxiyu.org/ykps/current/sjdb-src.git/)
   ([sr.ht mirror](https://git.sr.ht/~runxiyu/sjdb-src))
 - [Legacy repository](https://git.runxiyu.org/ykps/current/sjdb-legacy.git/)
