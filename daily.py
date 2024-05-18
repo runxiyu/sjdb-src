@@ -49,9 +49,6 @@ def main() -> None:
     config = ConfigParser()
     config.read(args.config)
 
-    cycle_data_path = config["general"]["cycle_data"]
-    with open(cycle_data_path, "r") as cycle_data_file:
-        cycle_data = json.load(cycle_data_file)
 
     tzinfo = zoneinfo.ZoneInfo(config["general"]["timezone"])
     if datetime_target_naive:
@@ -64,6 +61,14 @@ def main() -> None:
         del datetime_current_aware
     del datetime_target_naive
     logger.info("Generating for %s" % datetime_target_aware.strftime("%Y-%m-%d %Z"))
+
+    cycle_data_path = config["general"]["cycle_data"]
+    with open(cycle_data_path, "r") as cycle_data_file:
+        cycle_data = json.load(cycle_data_file)
+
+    build_path = config["general"]["build_path"]
+    os.chdir(build_path)
+
     generate(datetime_target_aware, cycle_data=cycle_data)
 
 def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> str:
@@ -83,9 +88,10 @@ def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> 
         try:
             with open("week-%s.json" % week_start_date.strftime("%Y%m%d"), "r") as week_file:
                 week_data = json.load(week_file)
-                break
         except FileNotFoundError:
             continue
+        else:
+            break
     else:
         raise FileNotFoundError("Cannot find a week-{date}.json file without five prior days")
 
@@ -129,5 +135,3 @@ def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> 
     
 if __name__ == "__main__":
     main()
-
-    # TODO: chdir
