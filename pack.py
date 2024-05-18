@@ -29,7 +29,7 @@ import zoneinfo
 
 def main(date: str, config: ConfigParser) -> None:
 
-    with open("templates/template.html", "r") as template_file:
+    with open(os.path.join(config["templates"]["directory"], config["templates"]["tmp"]), "r") as template_file:
         template = Template(template_file.read(), undefined=StrictUndefined)
 
     with open(

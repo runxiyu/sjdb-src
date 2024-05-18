@@ -68,7 +68,7 @@
 		</thead>
 		<tbody>
 			<tr class="today">
-				<th scope="row">???</th>
+				<th scope="row">{{weekday_abbrev}}</th>
 				{% if (community_time[0][0] == community_time[0][1] == community_time[0][2] == community_time[0][3]) %}
 					<td colspan="4">{{ community_time[0][0] }}</td>
 				{% elif (community_time[0][0] == community_time[0][1]) and (community_time[0][2] == community_time[0][3]) %}
