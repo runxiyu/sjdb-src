@@ -1,4 +1,23 @@
 #!/usr/bin/env python3
+#
+# Help in Daily Bulletin template development by dynamically filling templates
+# with flask as the templates are being worked on. DO NOT USE IN PRODUCTION.
+# Copyright (C) 2024 Runxi Yu <https://runxiyu.org>
+#
+# This program is free softhe_week_aheadre: you can redistribute it and/or
+# modify it under the terms of the GNU Affero General Public License as
+# published by the Free Softhe_week_aheadre Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+
 
 from __future__ import annotations
 from typing import Union, TypeAlias
@@ -49,5 +68,8 @@ data = data | extra_data
 def index() -> ResponseType:
     return render_template("template.html", **data)
 
+
+# The lack of the __name__ check is intentional. This script should not be used
+# in a production server.
 
 app.run(port=8000, debug=True, use_reloader=True)

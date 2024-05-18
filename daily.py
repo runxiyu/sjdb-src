@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
-# Daily script to prepare the YK Pao School Daily Bulletin Copyright (C) 2024
-# Runxi Yu <https://runxiyu.org>
+# Daily script to prepare the YK Pao School Daily Bulletin's JSON data files
+# Copyright (C) 2024 Runxi Yu <https://runxiyu.org>
 #
 # This program is free softhe_week_aheadre: you can redistribute it and/or
 # modify it under the terms of the GNU Affero General Public License as
