@@ -34,7 +34,8 @@ from flask import (
     make_response,
 )
 from werkzeug.wrappers.response import Response as werkzeugResponse
-from datetime import datetime
+import datetime
+import zoneinfo
 import os
 
 ResponseType: TypeAlias = Union[Response, werkzeugResponse, str]
@@ -43,25 +44,26 @@ app = Flask(__name__)
 app.jinja_env.undefined = StrictUndefined
 
 with open(
-    os.path.join("build", datetime.today().strftime("%Y%m%d") + "-data.json"), "r"
+    # os.path.join("build", "day-%s.json" % (datetime.datetime.now(tz=zoneinfo.ZoneInfo("Asia/Shanghai")) + datetime.timedelta(days=1)).strftime("%Y%m%d")), "r"
+    "build/day-20240513.json"
 ) as fd:
     data = json.load(fd)
 
-extra_data = {
-    "aod": data["aods"][0],  # FIXME
-    "stddate": "2024-04-01",
-    "weekday_english": "Monday",
-    "weekday_abbrev": "Mon",
-    "next_weekday_abbrev": "Tue",
-    "weekday_chinese": "周一",
-    "day_of_cycle": "SA",
-    "today_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
-    "today_lunch": ("1", "2", "3", "4", "5", "6", "7", "8"),
-    "today_dinner": ("1", "2", "3", "4", "5", "6", "7", "8"),
-    "next_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
-}
-
-data = data | extra_data
+# extra_data = {
+#     "aod": data["aods"][0],  # FIXME
+#     "stddate": "2024-04-01",
+#     "weekday_english": "Monday",
+#     "weekday_abbrev": "Mon",
+#     "next_weekday_abbrev": "Tue",
+#     "weekday_chinese": "周一",
+#     "day_of_cycle": "SA",
+#     "today_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
+#     "today_lunch": ("1", "2", "3", "4", "5", "6", "7", "8"),
+#     "today_dinner": ("1", "2", "3", "4", "5", "6", "7", "8"),
+#     "next_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
+# }
+# 
+# data = data | extra_data
 
 
 @app.route("/")

@@ -90,7 +90,7 @@ def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> 
     weekday_enum = datetime_target.weekday()
     weekday_en = DAYNAMES[weekday_enum]
     weekday_zh = DAYNAMES_CHINESE[weekday_enum]
-    weekday_short = DAYNAMES_SHORT[weekday_enum]
+    weekdays_short = DAYNAMES_SHORT[weekday_enum:]
     next_weekday_short = DAYNAMES_SHORT[weekday_enum + 1]
     try:
         day_of_cycle = cycle_data[datetime_target.strftime("%Y-%m-%d")]
@@ -133,10 +133,10 @@ def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> 
     data = {
         "stddate": datetime_target.strftime("%Y-%m-%d"),
         "community_time": week_data["community_time"][days_since_beginning:],
+        "days_after_this": len(week_data["community_time"][days_since_beginning:]) - 1,
         "aod": aod,
         "weekday_english": weekday_en,
-        "weekday_abbrev": weekday_short,
-        "next_weekday_abbrev": next_weekday_short,  # TODO: Check if EOW
+        "weekdays_abbrev": weekdays_short,
         "weekday_chinese": weekday_zh,
         "day_of_cycle": day_of_cycle,
         "today_breakfast": breakfast_today,

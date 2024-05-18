@@ -2,13 +2,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta content="width=device-width, initial-scale=1" name="viewport" />
-<!--FIXME: Stop using Albert's fonts-->
 <style>
-	@font-face { font-family: Inter; font-weight: 400; src: url("https://albertttan.github.io/daily-bulletin/files/Inter-Regular.ttf") format("truetype"); }
+	/* @font-face { font-family: Inter; font-weight: 400; src: url("https://albertttan.github.io/daily-bulletin/files/Inter-Regular.ttf") format("truetype"); }
 	@font-face { font-family: Inter; font-weight: 700; src: url("https://albertttan.github.io/daily-bulletin/files/Inter-Bold.ttf") format("truetype"); }
 	@font-face { font-family: "Noto Sans SC"; font-weight: 400; src: url("https://albertttan.github.io/daily-bulletin/files/NotoSansSC-Regular.otf") format("opentype"); }
-	@font-face { font-family: "Noto Sans SC"; font-weight: 700; src: url("https://albertttan.github.io/daily-bulletin/files/NotoSansSC-Bold.otf") format("opentype"); }
-	html { font-family: -apple-system, BlinkMacSystemFont, "SF Pro", Inter, "Noto Sans SC", sans-serif; }
+	@font-face { font-family: "Noto Sans SC"; font-weight: 700; src: url("https://albertttan.github.io/daily-bulletin/files/NotoSansSC-Bold.otf") format("opentype"); } */
+	html { font-family: "Arial", "Noto Sans SC", sans-serif; }
 	body { max-width: 60rem; margin: auto; padding: 1rem; }
 	header { margin-top: 1rem; text-align: center; margin-bottom: 1.5rem; }
 	h2 { padding-top: 1.2rem; }
@@ -29,11 +28,11 @@
 	blockquote { position: relative; margin-left: 40px; }
 	blockquote::before { content: ""; position: absolute; left: -14px; top: 0px; bottom: 0px; width: 2px; background-color: rgb(180, 180, 180); }
 	pre { background-color: rgb(240, 240, 240); padding: 10px; }
-	code, kbd, var { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: smaller; background-color: rgb(240, 240, 240); }
+	code, kbd, var { font-family: monospace; font-size: smaller; background-color: rgb(240, 240, 240); }
 	cite { font-size: 90%; font-style: italic; color: rgb(150, 150, 150); }
 	p.ps { font-size: 90%; color: rgb(150, 150, 150); }
 	.ps { color: rgb(150, 150, 150); }
-	.serif, math { font-family: "New York", Baskerville, "Noto Serif SC", serif; }
+	.serif, math { font-family: serif; }
 	img { max-width: 100%; max-height: 60rem; }
 	img.embed { width: 40%; float: right; margin-left: 10px; margin-bottom: 10px; }
 	hr { border: 1px solid rgb(150, 150, 150); }
@@ -48,9 +47,9 @@
 </header>
 <article>
 	<p>
-	Happy {{weekday_english}}! Thank you for supporting the Daily Bulletin. Please note that this is supplementary to The Week Ahead and is not the canonical source of information, and the Daily Bulletin staff accept no liability for the accuracy or validity. Please fill in the respective forms to <a href="">share inspirations</a>, <a href="">suggest</a>, or <a href="">unsubscribe</a>.
+	Happy {{weekday_english}}! Thank you for supporting the Daily Bulletin. Please note that this is supplementary to The Week Ahead and is not the canonical source of information, and the Daily Bulletin staff accept no liability for the accuracy or validity. Please fill in the respective forms to <a href="https://ykps.runxiyu.org/sjdb/share">share inspirations</a>, <a href="https://ykps.runxiyu.org/sjdb/suggest">suggest</a>, or <a href="https://ykps.runxiyu.org/sjdb/unsubscribe">unsubscribe</a>.
 	<br />
-	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是每周展望的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="">分享灵感</a>、<a href="">提出建议</a>或<a href="">退订</a>。
+	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是每周展望的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="https://ykps.runxiyu.org/sjdb/share">分享灵感</a>、<a href="https://ykps.runxiyu.org/sjdb/suggest">提出建议</a>或<a href="https://ykps.runxiyu.org/sjdb/unsubscribe">退订</a>。
 	</p>
 	{% if community_time %}
 	<h2>Community Time 午休时间</h2>
@@ -68,7 +67,7 @@
 		</thead>
 		<tbody>
 			<tr class="today">
-				<th scope="row">{{weekday_abbrev}}</th>
+				<th scope="row">{{weekdays_abbrev[0]}}</th>
 				{% if (community_time[0][0] == community_time[0][1] == community_time[0][2] == community_time[0][3]) %}
 					<td colspan="4">{{ community_time[0][0] }}</td>
 				{% elif (community_time[0][0] == community_time[0][1]) and (community_time[0][2] == community_time[0][3]) %}
@@ -89,30 +88,30 @@
 					<td colspan="1">{{ community_time[0][3] }}</td>
 				{% endif %}
 			</tr>
-			{% for community_time_day in community_time[1:] %}
+			{% for i in range(days_after_this) %}
 				<tr class="not-today">
-					<th scope="row">???</th>
-					{% if (community_time_day[0] == community_time_day[1] == community_time_day[2] == community_time_day[3]) %}
-						<td colspan="4">{{ community_time_day[0] }}</td>
-					{% elif (community_time_day[0] == community_time_day[1]) and (community_time_day[2] == community_time_day[3]) %}
-						<td colspan="2">{{ community_time_day[0] }}</td>
-						<td colspan="2">{{ community_time_day[2] }}</td>
-					{% elif community_time_day[0] == community_time_day[1] %}
-						<td colspan="2">{{ community_time_day[0] }}</td>
-						<td colspan="1">{{ community_time_day[2] }}</td>
-						<td colspan="1">{{ community_time_day[3] }}</td>
-					{% elif community_time_day[2] == community_time_day[3] %}
-						<td colspan="1">{{ community_time_day[0] }}</td>
-						<td colspan="1">{{ community_time_day[1] }}</td>
-						<td colspan="2">{{ community_time_day[2] }}</td>
+					<th scope="row">{{weekdays_abbrev[i+1]}}</th>
+					{% if (community_time[i+1][0] == community_time[i+1][1] == community_time[i+1][2] == community_time[i+1][3]) %}
+						<td colspan="4">{{ community_time[i+1][0] }}</td>
+					{% elif (community_time[i+1][0] == community_time[i+1][1]) and (community_time[i+1][2] == community_time[i+1][3]) %}
+						<td colspan="2">{{ community_time[i+1][0] }}</td>
+						<td colspan="2">{{ community_time[i+1][2] }}</td>
+					{% elif community_time[i+1][0] == community_time[i+1][1] %}
+						<td colspan="2">{{ community_time[i+1][0] }}</td>
+						<td colspan="1">{{ community_time[i+1][2] }}</td>
+						<td colspan="1">{{ community_time[i+1][3] }}</td>
+					{% elif community_time[i+1][2] == community_time[i+1][3] %}
+						<td colspan="1">{{ community_time[i+1][0] }}</td>
+						<td colspan="1">{{ community_time[i+1][1] }}</td>
+						<td colspan="2">{{ community_time[i+1][2] }}</td>
 					{% else %}
-						<td colspan="1">{{ community_time_day[0] }}</td>
-						<td colspan="1">{{ community_time_day[1] }}</td>
-						<td colspan="1">{{ community_time_day[2] }}</td>
-						<td colspan="1">{{ community_time_day[3] }}</td>
+						<td colspan="1">{{ community_time[i+1][0] }}</td>
+						<td colspan="1">{{ community_time[i+1][1] }}</td>
+						<td colspan="1">{{ community_time[i+1][2] }}</td>
+						<td colspan="1">{{ community_time[i+1][3] }}</td>
 					{% endif %}
 				</tr>
-			{% endfor %} <!-- TODO -->
+			{% endfor %}
 		</tbody>
 	</table>
 	{% endif %}
