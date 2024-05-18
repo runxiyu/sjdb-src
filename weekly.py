@@ -330,7 +330,7 @@ def download_share_url(
             for chunk in response.iter_content(chunk_size=chunk_size):
                 if chunk:
                     fd.write(chunk)
-    # TODO: Checl for failures
+    # TODO: Check for failures
 
 
 def acquire_token(
