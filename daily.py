@@ -41,11 +41,10 @@ DAYNAMES = [
 DAYNAMES_CHINESE = ["周一", "周二", "周三", "周四", "周五", "周六", "周日", "周一"]
 DAYNAMES_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon"]
 
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    parser = argparse.ArgumentParser(
-        description="Daily script for the Daily Bulletin"
-    )
+    parser = argparse.ArgumentParser(description="Daily script for the Daily Bulletin")
     parser.add_argument(
         "--date",
         default=None,
@@ -67,15 +66,12 @@ def main() -> None:
     config = ConfigParser()
     config.read(args.config)
 
-
     tzinfo = zoneinfo.ZoneInfo(config["general"]["timezone"])
     if datetime_target_naive:
         datetime_target_aware = datetime_target_naive.replace(tzinfo=tzinfo)
     else:
         datetime_current_aware = datetime.datetime.now(tz=tzinfo)
-        datetime_target_aware = datetime_current_aware + datetime.timedelta(
-            days=1
-        )
+        datetime_target_aware = datetime_current_aware + datetime.timedelta(days=1)
         del datetime_current_aware
     del datetime_target_naive
     logger.info("Generating for %s" % datetime_target_aware.strftime("%Y-%m-%d %Z"))
@@ -89,6 +85,7 @@ def main() -> None:
 
     generate(datetime_target_aware, cycle_data=cycle_data)
 
+
 def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> str:
     weekday_enum = datetime_target.weekday()
     weekday_en = DAYNAMES[weekday_enum]
@@ -99,19 +96,25 @@ def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> 
         day_of_cycle = cycle_data[datetime_target.strftime("%Y-%m-%d")]
     except KeyError:
         day_of_cycle = "SA"
-        logger.info("Note: Cycle day not found, using \"SA\"")
+        logger.info('Note: Cycle day not found, using "SA"')
 
     for days_since_beginning in range(0, 5):
-        week_start_date = datetime_target - datetime.timedelta(days = days_since_beginning)
+        week_start_date = datetime_target - datetime.timedelta(
+            days=days_since_beginning
+        )
         try:
-            with open("week-%s.json" % week_start_date.strftime("%Y%m%d"), "r") as week_file:
+            with open(
+                "week-%s.json" % week_start_date.strftime("%Y%m%d"), "r"
+            ) as week_file:
                 week_data = json.load(week_file)
         except FileNotFoundError:
             continue
         else:
             break
     else:
-        raise FileNotFoundError("Cannot find a week-{date}.json file without five prior days")
+        raise FileNotFoundError(
+            "Cannot find a week-{date}.json file without five prior days"
+        )
 
     try:
         aod = week_data["aods"][days_since_beginning]
@@ -141,15 +144,13 @@ def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> 
         "today_dinner": dinner_today,
         "next_breakfast": breakfast_tomorrow,
     }
-    with open(
-        "day-%s.json" % datetime_target.strftime("%Y%m%d"),
-        "w"
-    ) as fd:
+    with open("day-%s.json" % datetime_target.strftime("%Y%m%d"), "w") as fd:
         json.dump(data, fd, ensure_ascii=False, indent="\t")
     logger.info(
         "Data dumped to " + "day-%s.json" % datetime_target.strftime("%Y%m%d"),
     )
     return "day-%s.json" % datetime_target.strftime("%Y%m%d")
-    
+
+
 if __name__ == "__main__":
     main()
