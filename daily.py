@@ -67,19 +67,19 @@ def main() -> None:
     generate(datetime_target_aware, cycle_data=cycle_data)
 
 def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> str:
-    weekday_enum = datetime.target.weekday()
+    weekday_enum = datetime_target.weekday()
     weekday_en = DAYNAMES[weekday_enum]
     weekday_zh = DAYNAMES_CHINESE[weekday_enum]
     weekday_short = DAYNAMES_SHORT[weekday_enum]
     next_weekday_short = DAYNAMES_SHORT[weekday_enum + 1]
     try:
-        day_of_cycle = cycle_data[stddate]
+        day_of_cycle = cycle_data[datetime_target.strftime("%Y-%m-%d")]
     except KeyError:
         day_of_cycle = "SA"
         logger.info("Note: Cycle day not found, using \"SA\"")
 
     for days_since_beginning in range(0, 5):
-        week_start_date = datetime_target - datetime.timedelte(days = days_since_beginning)
+        week_start_date = datetime_target - datetime.timedelta(days = days_since_beginning)
         try:
             with open("week-%s.json" % week_start_date.strftime("%Y%m%d"), "r") as week_file:
                 week_data = json.load(week_file)
@@ -107,10 +107,10 @@ def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> 
         "stddate": datetime_target.strftime("%Y-%m-%d"),
         "community_time": week_data["community_time"][days_since_beginning:],
         "aod": aod,
-        "weekday_english": weekday,
+        "weekday_english": weekday_en,
         "weekday_abbrev": weekday_short,
         "next_weekday_abbrev": next_weekday_short,  # TODO: Check if EOW
-        "weekday_chinese": weekday_chinese,
+        "weekday_chinese": weekday_zh,
         "day_of_cycle": day_of_cycle,
         "today_breakfast": breakfast_today,
         "today_lunch": lunch_today,
@@ -125,6 +125,7 @@ def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> 
     logger.info(
         "Data dumped to " + "day-%s.json" % datetime_target.strftime("%Y%m%d"),
     )
+    return "day-%s.json" % datetime_target.strftime("%Y%m%d")
     
 if __name__ == "__main__":
     main()
