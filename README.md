@@ -21,13 +21,18 @@ build system.
 
 ## Installation
 The `python-pptx` is not in the Fedora/Asahi repository. It is therefore recommended to install and run the project in a virtual environment, though because `python-pptx` doesn't have very strange dependencies, I'd simply use a virtual environment that inherits system site packages:
-
 ```sh
 sudo dnf install python3-flask python3-jinja2 python3-jinja2-cli python3-msal python3-requests
 python3 -m venv venv --system-site-packages
-. ./venv/bin/activate  # every time, of course
+. ./venv/bin/activate  # every time you run, of course
 pip3 install -r requirements.txt
 ```
+
+Or simply install it into your user directory with `pip`, although this is considered back practice:
+```sh
+pip3 install python-pptx --break-system-packages --user
+```
+
 
 
 ## GitHub Mirror
