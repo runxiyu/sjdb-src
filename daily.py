@@ -23,62 +23,89 @@ DAYNAMES = [
 DAYNAMES_CHINESE = ["周一", "周二", "周三", "周四", "周五", "周六", "周日", "周一"]
 DAYNAMES_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon"]
 
-
-def main(stddate: str, config: ConfigParser) -> None:
-    date = stddate.replace("-", "")
-    dtdate = datetime.datetime.strptime(stddate, "%Y-%m-%d").replace(
-        tzinfo=zoneinfo.ZoneInfo(config["general"]["timezone"])
+def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser(
+        description="Daily script for the Daily Bulletin"
     )
-    weekday_enum = dtdate.weekday()
-    weekday = DAYNAMES[weekday_enum]
-    weekday_chinese = DAYNAMES_CHINESE[weekday_enum]
+    parser.add_argument(
+        "--date",
+        default=None,
+        help="the day to generate for, in local time, in YYYY-MM-DD; defaults to tomorrow",
+        # TODO: Verify validity of date
+        # TODO: Verify consistency of date elsewhere
+    )
+    parser.add_argument(
+        "--config", default="config.ini", help="path to the configuration file"
+    )
+    args = parser.parse_args()
+
+    if args.date:
+        datetime_target_naive = datetime.datetime.strptime(args.date, "%Y-%m-%d")
+    else:
+        datetime_target_naive = None
+    del args.date
+
+    config = ConfigParser()
+    config.read(args.config)
+
+    cycle_data_path = config["general"]["cycle_data"]
+    with open(cycle_data_path, "r") as cycle_data_file:
+        cycle_data = json.load(cycle_data_file)
+
+    tzinfo = zoneinfo.ZoneInfo(config["general"]["timezone"])
+    if datetime_target_naive:
+        datetime_target_aware = datetime_target_naive.replace(tzinfo=tzinfo)
+    else:
+        datetime_current_aware = datetime.datetime.now(tz=tzinfo)
+        datetime_target_aware = datetime_current_aware + datetime.timedelta(
+            days=1
+        )
+        del datetime_current_aware
+    del datetime_target_naive
+    logger.info("Generating for %s" % datetime_target_aware.strftime("%Y-%m-%d %Z"))
+    generate(datetime_target_aware, cycle_data=cycle_data)
+
+def generate(datetime_target: datetime.datetime, cycle_data: dict[str, str]) -> str:
+    weekday_enum = datetime.target.weekday()
+    weekday_en = DAYNAMES[weekday_enum]
+    weekday_zh = DAYNAMES_CHINESE[weekday_enum]
     weekday_short = DAYNAMES_SHORT[weekday_enum]
     next_weekday_short = DAYNAMES_SHORT[weekday_enum + 1]
-
-    cycle_data = json.load(open(config["general"]["cycle_data"], "r"))
     try:
         day_of_cycle = cycle_data[stddate]
     except KeyError:
         day_of_cycle = "SA"
+        logger.info("Note: Cycle day not found, using \"SA\"")
 
-    for i in range(0, 5):
-        week_start_date = dtdate - datetime.timedelta(days=i)
+    for days_since_beginning in range(0, 5):
+        week_start_date = datetime_target - datetime.timedelte(days = days_since_beginning)
         try:
-            with open(
-                os.path.join(
-                    config["general"]["build_path"],
-                    "week-%s.json" % week_start_date.strftime("%Y%m%d"),
-                ),
-                "r",
-            ) as week_file:
+            with open("week-%s.json" % week_start_date.strftime("%Y%m%d"), "r") as week_file:
                 week_data = json.load(week_file)
+                break
         except FileNotFoundError:
             continue
-        else:
-            break
     else:
-        raise FileNotFoundError(
-            "Cannot find a week-{}.json file within five prior days"
-        )
-
-    swayindex = (dtdate - week_start_date).days
+        raise FileNotFoundError("Cannot find a week-{date}.json file without five prior days")
 
     try:
-        aod = week_data["aods"][swayindex]
+        aod = week_data["aods"][days_since_beginning]
     except IndexError:
+        logger.warning("AOD not found")
         aod = "None"
 
-    breakfast_today = week_data["menu"]["breakfast"][swayindex]
-    lunch_today = week_data["menu"]["breakfast"][swayindex]
-    dinner_today = week_data["menu"]["breakfast"][swayindex]
+    breakfast_today = week_data["menu"]["breakfast"][days_since_beginning]
+    lunch_today = week_data["menu"]["lunch"][days_since_beginning]
+    dinner_today = week_data["menu"]["dinner"][days_since_beginning]
     try:
-        breakfast_tomorrow = week_data["menu"]["breakfast"][swayindex + 1]
+        breakfast_tomorrow = week_data["menu"]["breakfast"][days_since_beginning + 1]
     except IndexError:
         breakfast_tomorrow = None
 
     data = {
-        "stddate": stddate,
-        "community_time": week_data["community_time"][swayindex:],
+        "stddate": datetime_target.strftime("%Y-%m-%d"),
+        "community_time": week_data["community_time"][days_since_beginning:],
         "aod": aod,
         "weekday_english": weekday,
         "weekday_abbrev": weekday_short,
@@ -91,42 +118,15 @@ def main(stddate: str, config: ConfigParser) -> None:
         "next_breakfast": breakfast_tomorrow,
     }
     with open(
-        os.path.join(config["general"]["build_path"], "day-" + date + ".json"), "w"
+        "day-%s.json" % datetime_target.strftime("%Y%m%d"),
+        "w"
     ) as fd:
         json.dump(data, fd, ensure_ascii=False, indent="\t")
     logger.info(
-        "Data dumped to "
-        + os.path.join(config["general"]["build_path"], "day-" + date + ".json")
+        "Data dumped to " + "day-%s.json" % datetime_target.strftime("%Y%m%d"),
     )
-
-
+    
 if __name__ == "__main__":
-    try:
-        logging.basicConfig(level=logging.INFO)
-        parser = argparse.ArgumentParser(
-            description="Daily script for the Daily Bulletin"
-        )
-        parser.add_argument(
-            "--date",
-            default=None,
-            help="the day to generate for, in local time, in YYYY-MM-DD; defaults to tomorrow",
-            # TODO: Verify validity of date
-            # TODO: Verify consistency of date elsewhere
-        )
-        parser.add_argument(
-            "--config", default="config.ini", help="path to the configuration file"
-        )
-        args = parser.parse_args()
-        config = ConfigParser()
-        config.read(args.config)
-        if args.date:
-            date = args.date
-        else:
-            now = datetime.datetime.now(
-                zoneinfo.ZoneInfo(config["general"]["timezone"])
-            )
-            date = (now + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-        logging.info("Generating for day %s" % date)
-        main(date, config)
-    except KeyboardInterrupt:
-        logging.critical("KeyboardInterrupt")
+    main()
+
+    # TODO: chdir

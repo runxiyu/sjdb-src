@@ -26,6 +26,8 @@
 # - Use meaningful variable names.
 # - Always write type hints.
 # - Use the logger! Try not to print.
+#
+# TODO: Check The Week Ahead's dates
 
 from __future__ import annotations
 from typing import Any, Optional, Iterable, Iterator
@@ -218,7 +220,7 @@ def main() -> None:
     parser.add_argument(
         "--date",
         default=None,
-        help="the start of the week to generate for, in local time, YYYY-MM-DD",
+        help="the start of the week to generate for, in local time, YYYY-MM-DD; defaults to next Monday",
     )
     parser.add_argument(
         "--config", default="config.ini", help="path to the configuration file"
