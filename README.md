@@ -21,7 +21,7 @@ build system.
 
 ## Installation
 
-## Standard GNU/Linux systems
+### Standard GNU/Linux systems
 The `python-pptx` is not in the Fedora/Debian repository. It is therefore recommended to install and run the project in a virtual environment. It is safer to purely use a virtual environment, but since I use some packages in other projects too, I prefer using my system package manager whenever possible:
 ```sh
 sudo apt/dnf install python3-flask python3-jinja2 python3-msal python3-requests
@@ -37,7 +37,7 @@ pip3 install --break-system-packages --user python-pptx
 
 If you use Guix/NixOS or other "less standard" systems, you are on your own.
 
-## macOS
+### macOS
 macOS is not yet supported as the main developer ([Runxi Yu](https://runxiyu.org/)) uses [Asahi Linux](https://asahilinux.org/) and [Debian](https://www.debian.org/).
 
 If you use a manually-installed Python interpreter, using `pip install --user -r requirements.txt` should be safe. I am unsure about how Homebrew manages Python packages or how the Python interpreter preinstalled with the system works. If in doubt, use a virtual environment.
