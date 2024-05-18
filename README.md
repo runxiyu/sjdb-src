@@ -28,7 +28,7 @@ python3 -m venv venv --system-site-packages
 pip3 install -r requirements.txt
 ```
 
-Or simply install it into your user directory with `pip`, although this is considered back practice:
+Or simply install it into your user directory with `pip`, although this is considered bad practice:
 ```sh
 pip3 install python-pptx --break-system-packages --user
 ```
