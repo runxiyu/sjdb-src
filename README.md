@@ -10,8 +10,10 @@ This repository contains the source code of the modern Daily Bulletin's
 build system.
 
 - [User-facing web page](https://ykps.runxiyu.org/sjdb/)
-- [Canonical code repository](https://git.runxiyu.org/ykps/current/sjdb-src.git/)
+- [Build system repository](https://git.runxiyu.org/ykps/current/sjdb-src.git/)
   ([sr.ht mirror](https://git.sr.ht/~runxiyu/sjdb-src))
+- [Built files repository](https://git.runxiyu.org/ykps/current/sjdb-build.git/)
+  ([sr.ht mirror](https://git.sr.ht/~runxiyu/sjdb-build))
 - [Legacy repository](https://git.runxiyu.org/ykps/current/sjdb-legacy.git/)
   ([sr.ht mirror](https://git.sr.ht/~runxiyu/sjdb-legacy))
 - [Issue tracker](https://todo.sr.ht/~runxiyu/sjdb)
