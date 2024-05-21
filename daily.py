@@ -83,22 +83,15 @@ def main() -> None:
     build_path = config["general"]["build_path"]
     os.chdir(build_path)
 
-    inspire_api_base = config["daily_inspiration"]["api_base"].rstrip("/") + "/"
-    inspire_token = config["daily_inspiration"]["token"]
-
     generate(
         datetime_target_aware,
         cycle_data=cycle_data,
-        inspire_api_base=inspire_api_base,
-        inspire_token=inspire_token,
     )
 
 
 def generate(
     datetime_target: datetime.datetime,
     cycle_data: dict[str, str],
-    inspire_api_base: str,
-    inspire_token: str,
 ) -> str:
     weekday_enum = datetime_target.weekday()
     weekday_en = DAYNAMES[weekday_enum]
