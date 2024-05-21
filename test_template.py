@@ -62,7 +62,7 @@ with open(
 #     "today_dinner": ("1", "2", "3", "4", "5", "6", "7", "8"),
 #     "next_breakfast": ("1", "2", "3", "4", "5", "6", "7", "8"),
 # }
-# 
+#
 # data = data | extra_data
 
 

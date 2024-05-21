@@ -29,11 +29,16 @@ import zoneinfo
 
 def main(date: str, config: ConfigParser) -> None:
 
-    with open(os.path.join(config["templates"]["directory"], config["templates"]["tmp"]), "r") as template_file:
+    with open(
+        os.path.join(config["templates"]["directory"], config["templates"]["tmp"]), "r"
+    ) as template_file:
         template = Template(template_file.read(), undefined=StrictUndefined)
 
     with open(
-        os.path.join(config["general"]["build_path"], "day-" + date.replace("-", "") + ".json"), "r"
+        os.path.join(
+            config["general"]["build_path"], "day-" + date.replace("-", "") + ".json"
+        ),
+        "r",
     ) as fd:
         data = json.load(fd)
 
@@ -43,7 +48,9 @@ def main(date: str, config: ConfigParser) -> None:
     # data = data | extra_data
 
     template.stream(**data).dump(
-        os.path.join(config["general"]["build_path"], "sjdb-%s.html" % date.replace("-", ""))
+        os.path.join(
+            config["general"]["build_path"], "sjdb-%s.html" % date.replace("-", "")
+        )
     )
 
     # FIXME: Escape the dangerous HTML!
