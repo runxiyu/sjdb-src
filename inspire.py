@@ -76,14 +76,14 @@ def main() -> None:
             },
             stream=True,
         ) as r:
-            with open("inspire-%s" % os.path.basename(sn), "w+b") as fd:
-                shutil.copyfileobj(r.raw, fd)
-                fd.flush()
-                fd.seek(0)
-                try:
-                    sub = json.load(fd)
-                except json.decoder.JSONDecodeError:
-                    logger.error("inspire-%s is broken, skipping" % sn)
+            try:
+                sub = json.load(r.raw)
+            except json.decoder.JSONDecodeError:
+                logger.error("inspire-%s is broken, skipping" % sn)
+        sub["used"] = False
+        sub["approved"] = False
+        with open("inspire-%s" % os.path.basename(sn), "w") as fd:
+            json.dump(sub, fd, indent="\t")
         if not sub["file"]:
             logger.info("No attachment")
         else:
