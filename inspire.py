@@ -61,8 +61,13 @@ def main() -> None:
     local_submission_list = set(
         [sn.lstrip("inspire-") for sn in os.listdir() if sn.startswith("inspire-")]
     )
-
-    for sn in remote_submission_list - local_submission_list:
+    to_fetch = remote_submission_list - local_submission_list
+    if to_fetch:
+        logger.info("Going to fetch: %s" % ", ".join(to_fetch))
+    else:
+        logger.info("Nothing to fetch")
+    for sn in to_fetch:
+        logger.info("Fetching: %s" % sn)
         with requests.get(
             api_base + "rs/" + sn,
             headers={
@@ -79,7 +84,10 @@ def main() -> None:
                     sub = json.load(fd)
                 except json.decoder.JSONDecodeError:
                     logger.error("inspire-%s is broken, skipping" % sn)
-        if sub["file"] is not None:
+        if not sub["file"]:
+            logger.info("No attachment")
+        else:
+            logger.info("Attachment noticed")
             with requests.get(
                 api_base + "rf/" + os.path.basename(sub["file"]),
                 headers={
@@ -89,6 +97,9 @@ def main() -> None:
                 stream=True,
             ) as r:
                 with open("inspattach-%s" % os.path.basename(sub["file"]), "wb") as fd:
+                    logger.info(
+                        "Saved to inspattach-%s" % os.path.basename(sub["file"])
+                    )
                     shutil.copyfileobj(r.raw, fd)
                     fd.flush()
 
