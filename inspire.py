@@ -71,7 +71,7 @@ def main() -> None:
             },
             stream=True,
         ) as r:
-            with open("inspire-%s" % sn, "w+b") as fd:
+            with open("inspire-%s" % os.path.basename(sn), "w+b") as fd:
                 shutil.copyfileobj(r.raw, fd)
                 fd.flush()
                 fd.seek(0)
@@ -81,14 +81,14 @@ def main() -> None:
                     logger.error("inspire-%s is broken, skipping" % sn)
         if sub["file"] is not None:
             with requests.get(
-                api_base + "rf/" + sub["file"],
+                api_base + "rf/" + os.path.basename(sub["file"]),
                 headers={
                     "Authorization": "Bearer %s" % token,
                     "Accept-Encoding": "identity",
                 },
                 stream=True,
             ) as r:
-                with open(sub["file"], "wb") as fd:
+                with open("inspattach-%s" % os.path.basename(sub["file"]), "wb") as fd:
                     shutil.copyfileobj(r.raw, fd)
                     fd.flush()
 
