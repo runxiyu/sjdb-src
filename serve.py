@@ -68,10 +68,19 @@ config.read("config.ini")
 @app.route("/")
 def index() -> ResponseType:
     with open(
-        os.path.join(config["general"]["build_path"], "day-%s.json" % (datetime.datetime.now(tz=zoneinfo.ZoneInfo("Asia/Shanghai")) + datetime.timedelta(days=1)).strftime("%Y%m%d")), "r"
+        os.path.join(
+            config["general"]["build_path"],
+            "day-%s.json"
+            % (
+                datetime.datetime.now(tz=zoneinfo.ZoneInfo("Asia/Shanghai"))
+                + datetime.timedelta(days=1)
+            ).strftime("%Y%m%d"),
+        ),
+        "r",
     ) as fd:
         data = json.load(fd)
     return render_template("template.html", **data)
+
 
 @app.route("/<date>")
 def date(date: str) -> ResponseType:
@@ -80,6 +89,7 @@ def date(date: str) -> ResponseType:
     ) as fd:
         data = json.load(fd)
     return render_template("template.html", **data)
+
 
 # The lack of the __name__ check is intentional. This script should not be used
 # in a production server.
