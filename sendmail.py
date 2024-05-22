@@ -22,6 +22,7 @@ import logging
 import msal  # type: ignore
 import requests
 import datetime
+import zoneinfo
 from configparser import ConfigParser
 from typing import Any, Optional
 
@@ -102,8 +103,15 @@ def main() -> None:
         to=config["test_sendmail"]["to"].split(" "),
         cc=config["test_sendmail"]["cc"].split(" "),
         bcc=config["test_sendmail"]["bcc"].split(" "),
-        when=datetime.datetime.now(datetime.timezone.utc)
-        + datetime.timedelta(minutes=int(config["test_sendmail"]["minutes_delay"])),
+        when=(
+            datetime.datetime.now(tz=zoneinfo.ZoneInfo(config["general"]["timezone"]))
+            + datetime.timedelta(days=1)
+        ).replace(
+            hour=int(config["test_sendmail"]["hour"]),
+            minute=int(config["test_sendmail"]["minute"]),
+            second=0,
+            microsecond=0,
+        ),
         content_type="HTML",
         importance="Normal",
     )
