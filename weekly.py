@@ -581,16 +581,6 @@ def extract_aods(prs: pptx.Presentation, aod_page_number: int) -> list[str]:
     # TODO: revamp this. this is ugly!
 
 
-def get_message(
-    token: str,
-    hitid: str,
-) -> bytes:
-    return requests.get(
-        "https://graph.microsoft.com/v1.0/me/messages/%s/$value" % hitid,
-        headers={"Authorization": "Bearer " + token},
-    ).content
-
-
 def filter_mail_results_by_sender(
     original: Iterable[dict[str, Any]], sender: str
 ) -> Iterator[dict[str, Any]]:
@@ -648,8 +638,15 @@ def download_menu(
     else:
         raise ValueError("No SJ-menu email found")
 
-    msg_bytes = get_message(token, hit["hitId"])
-    msg = email.message_from_bytes(msg_bytes)
+    with requests.get(
+        "https://graph.microsoft.com/v1.0/me/messages/%s/$value" % hit["hitId"],
+        headers={
+            "Authorization": "Bearer %s" % token,
+            "Accept-Encoding": "identity",
+        },
+        stream=True,
+    ) as r:
+        msg = email.message_from_bytes(r.content)
 
     for part in msg.walk():
         if part.get_content_type() in [
