@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
+# TODO: Check for potential filename injections
+#
 
 from __future__ import annotations
 from configparser import ConfigParser
@@ -25,6 +27,7 @@ import logging
 import datetime
 import zoneinfo
 import os
+import sys
 import requests
 import shutil
 
@@ -68,9 +71,26 @@ def main() -> None:
             },
             stream=True,
         ) as r:
-            with open("inspire-%s" % sn, "wb") as fd:
+            with open("inspire-%s" % sn, "w+b") as fd:
                 shutil.copyfileobj(r.raw, fd)
                 fd.flush()
+                fd.seek(0)
+                try:
+                    sub = json.load(fd)
+                except json.decoder.JSONDecodeError:
+                    logger.error("inspire-%s is broken, skipping" % sn)
+        if sub["file"] is not None:
+            with requests.get(
+                api_base + "rf/" + sub["file"],
+                headers={
+                    "Authorization": "Bearer %s" % token,
+                    "Accept-Encoding": "identity",
+                },
+                stream=True,
+            ) as r:
+                with open(sub["file"], "wb") as fd:
+                    shutil.copyfileobj(r.raw, fd)
+                    fd.flush()
 
 
 if __name__ == "__main__":
