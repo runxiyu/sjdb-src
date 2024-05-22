@@ -36,7 +36,6 @@ from configparser import ConfigParser
 from pprint import pprint
 import argparse
 import logging
-import msal  # type: ignore
 import requests
 import subprocess
 import datetime
@@ -47,6 +46,8 @@ import json
 import base64
 import email
 import re
+
+import msal  # type: ignore
 import pptx  # type: ignore
 import pptx.exc  # type: ignore
 
@@ -179,7 +180,7 @@ def generate(
     logger.info("Beginning to extract menus")
     # TODO: menu_pdf_filename not used
     try:
-        menu = extract_all_menus(
+        menu = extract_pptx_menus(
             menu_en_filename,
             menu_zh_filename,
             weekly_menu_breakfast_page_number,
@@ -191,7 +192,7 @@ def generate(
             "Invalid menus! Opening both PPTX menus for manual intervention.", e.args[0]
         )
         subprocess.run([soffice, menu_en_filename, menu_zh_filename])
-        menu = extract_all_menus(
+        menu = extract_pptx_menus(
             menu_en_filename,
             menu_zh_filename,
             weekly_menu_breakfast_page_number,
@@ -467,7 +468,7 @@ def parse_meal_tables(
     return daysmenus
 
 
-def extract_all_menus(
+def extract_pptx_menus(
     menu_en_filename: str,
     menu_zh_filename: str,
     breakfast_page_number: int,
