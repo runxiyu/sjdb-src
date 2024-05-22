@@ -42,6 +42,7 @@ import subprocess
 import datetime
 import zoneinfo
 import os
+import shutil
 import json
 import base64
 import email
@@ -319,18 +320,24 @@ def encode_sharing_url(url: str) -> str:
 def download_share_url(
     token: str, url: str, local_filename: str, chunk_size: int = 65536
 ) -> None:
+
     download_direct_url = requests.get(
         "https://graph.microsoft.com/v1.0/shares/%s/driveItem"
         % encode_sharing_url(url),
         headers={"Authorization": "Bearer " + token},
     ).json()["@microsoft.graph.downloadUrl"]
-    with requests.get(download_direct_url, stream=True) as response:
-        response.raise_for_status()
+
+    with requests.get(
+        download_direct_url,
+        headers={
+            "Authorization": "Bearer %s" % token,
+            "Accept-Encoding": "identity",
+        },
+        stream=True,
+    ) as r:
         with open(local_filename, "wb") as fd:
-            for chunk in response.iter_content(chunk_size=chunk_size):
-                if chunk:
-                    fd.write(chunk)
-    # TODO: Check for failures
+            shutil.copyfileobj(r.raw, fd)
+            fd.flush()
 
 
 def acquire_token(
