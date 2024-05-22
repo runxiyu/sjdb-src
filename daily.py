@@ -83,14 +83,18 @@ def main() -> None:
     build_path = config["general"]["build_path"]
     os.chdir(build_path)
 
+    the_week_ahead_url = config["the_week_ahead"]["file_url"]
+
     generate(
         datetime_target_aware,
         cycle_data=cycle_data,
+        the_week_ahead_url=the_week_ahead_url,
     )
 
 
 def generate(
     datetime_target: datetime.datetime,
+    the_week_ahead_url: str,
     cycle_data: dict[str, str],
 ) -> str:
     weekday_enum = datetime_target.weekday()
@@ -149,6 +153,7 @@ def generate(
         "today_lunch": lunch_today,
         "today_dinner": dinner_today,
         "next_breakfast": breakfast_tomorrow,
+        "the_week_ahead_url": the_week_ahead_url,
     }
     with open("day-%s.json" % datetime_target.strftime("%Y%m%d"), "w") as fd:
         json.dump(data, fd, ensure_ascii=False, indent="\t")

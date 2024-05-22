@@ -45,7 +45,7 @@ app.jinja_env.undefined = StrictUndefined
 
 with open(
     # os.path.join("build", "day-%s.json" % (datetime.datetime.now(tz=zoneinfo.ZoneInfo("Asia/Shanghai")) + datetime.timedelta(days=1)).strftime("%Y%m%d")), "r"
-    "build/day-20240513.json"
+    "../sjdb-build/day-20240524.json"
 ) as fd:
     data = json.load(fd)
 

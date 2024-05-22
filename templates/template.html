@@ -1,3 +1,4 @@
+{# This comment makes Vim detect the filetype. #}
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -25,6 +26,7 @@
 	td { min-width: 4.8rem; }
 	table#menu ul { padding-left: 1.2em; }
 	th { color: black; background-color: rgb(240, 240, 240); }
+	th, .wtitle { font-weight: bold; }
 	blockquote { position: relative; margin-left: 40px; }
 	blockquote::before { content: ""; position: absolute; left: -14px; top: 0px; bottom: 0px; width: 2px; background-color: rgb(180, 180, 180); }
 	pre { background-color: rgb(240, 240, 240); padding: 10px; }
@@ -47,13 +49,12 @@
 </header>
 <article>
 	<p>
-	Happy {{weekday_english}}! Thank you for supporting the Daily Bulletin. Please note that this is supplementary to The Week Ahead and is not the canonical source of information, and the Daily Bulletin staff accept no liability for the accuracy or validity. Please fill in the respective forms to <a href="https://ykps.runxiyu.org/sjdb/share">share inspirations</a>, <a href="https://ykps.runxiyu.org/sjdb/suggest">suggest</a>, or <a href="https://ykps.runxiyu.org/sjdb/unsub">unsubscribe</a>.
+	Happy {{weekday_english}}! Thank you for supporting the Daily Bulletin. Please note that this is supplementary to <a href="{{the_week_ahead_url}}">The Week Ahead</a> and is not the canonical source of information, and the Daily Bulletin staff accept no liability for the accuracy or validity. Please fill in the respective forms to <a href="https://ykps.runxiyu.org/sjdb/share">share inspirations</a>, <a href="https://ykps.runxiyu.org/sjdb/suggest">suggest</a>, or <a href="https://ykps.runxiyu.org/sjdb/unsub">unsubscribe</a>.
 	<br />
-	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是每周展望的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="https://ykps.runxiyu.org/sjdb/share">分享灵感</a>、<a href="https://ykps.runxiyu.org/sjdb/suggest">提出建议</a>或<a href="https://ykps.runxiyu.org/sjdb/unsubscribe">退订</a>。
+	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是<a href="{{the_week_ahead_url}}">每周展望</a>的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="https://ykps.runxiyu.org/sjdb/share">分享灵感</a>、<a href="https://ykps.runxiyu.org/sjdb/suggest">提出建议</a>或<a href="https://ykps.runxiyu.org/sjdb/unsubscribe">退订</a>。
 	</p>
 	{% if community_time %}
 	<h2>Community Time 午休时间</h2>
-	<!---->
 	<table id="community_time">
 		<colgroup><col style="width: 5%"><col style="width: 23.75%"><col style="width: 23.75%"><col style="width: 23.75%"><col style="width: 23.75%"></colgroup>
 		<thead>
@@ -115,105 +116,245 @@
 		</tbody>
 	</table>
 	{% endif %}
-	<!--
-	{% if 0 %}
 	<h2>Delicious Dinings 今日佳肴</h2>
 	<table id="menu">
 		<colgroup>
 			<col style="width: 5%">
-			<col style="width: 13.571428571428571%;">
-			<col style="width: 13.571428571428571%;">
-			<col style="width: 13.571428571428571%;">
-			<col style="width: 13.571428571428571%;">
-			<col style="width: 13.571428571428571%;">
-			<col style="width: 13.571428571428571%;">
-			<col style="width: 13.571428571428571%; 2px solid rgb(180, 180, 180);">
+			<col style="width: 23.75%;">
+			<col style="width: 23.75%;">
+			<col style="width: 23.75%;">
+			<col style="width: 23.75%;">
+			<col style="width: 23.75%;">
+			<col style="width: 23.75%; border-left: 2px solid rgb(180, 180, 180);">
 		</colgroup>
 		<thead>
 			<tr>
 				<th scope="col">Day</th>
 				<th scope="col">Taste of Asia</th>
 				<th scope="col">Eat Global</th>
-				<th scope="col">Revolution</th>
-				<th scope="col">Piccola Italia</th>
-				<th scope="col">Vegetarian</th>
-				<th scope="col">Daily Soup</th>
-				<th scope="col">Student Snack</th>
+				<th scope="col">Revolution / Piccola Italia</th>
+				<th scope="col">Others</th>
 			</tr>
 		</thead>
 		<tbody>
 			<tr class="today">
-				<th scope="row">{{weekday_abbrev}}<br/>Brkfst</th>
-				{% for i in range(7) %}
-					<td>
-						{% if today_breakfast[i] %}
-						<ul>
-						{% for m in today_breakfast[i] %}
+				<th scope="row">{{weekdays_abbrev[0]}}<br/>Brkfst</th>
+				{% for i in [0, 1] %}
+				<td>
+					{% if today_breakfast[i] %}
+					<ul>
+					{% for m in today_breakfast[i] %}
+					<li>
+						{{m["en"]}}<br />{{m["zh"]}}
+					</li>
+					{% endfor %}
+					</ul>
+					{% endif %}
+				</td>
+				{% endfor %}
+				<td>
+					<ul>
+						{% for m in today_breakfast[2] %}
 						<li>
-							{{ m[0] }}<br/>{{m[1]}}
+							{{m["en"]}}<br />{{m["zh"]}}
 						</li>
 						{% endfor %}
-						</ul>
-						{% endif %}
-					</td>
-				{% endfor %}
+					</ul>
+					<ul>
+						{% for m in today_breakfast[3] %}
+						<li>
+							{{m["en"]}}<br />{{m["zh"]}}
+						</li>
+						{% endfor %}
+					</ul>
+				</td>
+				<td>
+					<ul>
+						<li>
+							<span class="wtitle">Cafeteria Extra:</span><br />
+							{{ today_breakfast[4][0]["en"] }}<br />{{ today_breakfast[4][0]["zh"] }}
+							{% for m in today_breakfast[4][1:] %}
+							<br />{{m["en"]}}<br />{{m["zh"]}}
+							{% endfor %}
+						</li>
+					</ul>
+				</td>
 			</tr>
 			<tr class="today">
-				<th scope="row">{{weekday_abbrev}}<br/>Lunch</th>
-				{% for i in range(7) %}
-					<td>
-						{% if today_lunch[i] %}
-						<ul>
-						{% for m in today_lunch[i] %}
+				<th scope="row">{{weekdays_abbrev[0]}}<br/>Lunch</th>
+				{% for i in [0, 1] %}
+				<td>
+					{% if today_lunch[i] %}
+					<ul>
+					{% for m in today_lunch[i] %}
+					<li>
+						{{m["en"]}}<br />{{m["zh"]}}
+					</li>
+					{% endfor %}
+					</ul>
+					{% endif %}
+				</td>
+				{% endfor %}
+				<td>
+					<ul>
+						{% for m in today_lunch[2] %}
 						<li>
-							{{ m[0] }}<br/>{{m[1]}}
+							{{m["en"]}}<br />{{m["zh"]}}
 						</li>
 						{% endfor %}
-						</ul>
-						{% endif %}
-					</td>
-				{% endfor %}
+					</ul>
+					<ul>
+						{% for m in today_lunch[3] %}
+						<li>
+							{{m["en"]}}<br />{{m["zh"]}}
+						</li>
+						{% endfor %}
+					</ul>
+				</td>
+				<td>
+					<ul>
+						<li>
+							<span class="wtitle">Vegetarian:</span><br />
+							{{ today_lunch[4][0]["en"] }}<br />{{ today_lunch[4][0]["zh"] }}
+							{% for m in today_lunch[4][1:] %}
+							<br />{{m["en"]}}<br />{{m["zh"]}}
+							{% endfor %}
+						</li>
+						<li>
+							<span class="wtitle">Soup:</span><br />
+							{{ today_lunch[5][0]["en"] }}<br />{{ today_lunch[5][0]["zh"] }}
+							{% for m in today_lunch[5][1:] %}
+							<br />{{m["en"]}}<br />{{m["zh"]}}
+							{% endfor %}
+						</li>
+						<li>
+							<span class="wtitle">Cafeteria Extra:</span><br />
+							{{ today_lunch[6][0]["en"] }}<br />{{ today_lunch[6][0]["zh"] }}
+							{% for m in today_lunch[6][1:] %}
+							<br />{{m["en"]}}<br />{{m["zh"]}}
+							{% endfor %}
+						</li>
+					</ul>
+				</td>
 			</tr>
-			{% if today_dinner %}
+			{% if today_dinner and days_after_this >= 0 %}
 			<tr class="today">
-				<th scope="row">{{weekday_abbrev}}<br/>Dinner</th>
-				{% for i in range(7) %}
-					<td>
-						{% if today_dinner[i] %}
-						<ul>
-						{% for m in today_dinner[i] %}
+				<th scope="row">{{weekdays_abbrev[0]}}<br/>Dinner</th>
+				{% for i in [0, 1] %}
+				<td>
+					{% if today_dinner[i] %}
+					<ul>
+					{% for m in today_dinner[i] %}
+					<li>
+						{{m["en"]}}<br />{{m["zh"]}}
+					</li>
+					{% endfor %}
+					</ul>
+					{% endif %}
+				</td>
+				{% endfor %}
+				<td>
+					<ul>
+						{% for m in today_dinner[2] %}
 						<li>
-							{{ m[0] }}<br/>{{m[1]}}
+							{{m["en"]}}<br />{{m["zh"]}}
 						</li>
 						{% endfor %}
-						</ul>
+					</ul>
+					<ul>
+						{% for m in today_dinner[3] %}
+						<li>
+							{{m["en"]}}<br />{{m["zh"]}}
+						</li>
+						{% endfor %}
+					</ul>
+				</td>
+				<td>
+					<ul>
+						{% if today_dinner[4] %}
+						<li>
+							<span class="wtitle">Vegetarian:</span><br />
+							{{ today_dinner[4][0]["en"] }}<br />{{ today_dinner[4][0]["zh"] }}
+							{% for m in today_dinner[4][1:] %}
+							<br />{{m["en"]}}<br />{{m["zh"]}}
+							{% endfor %}
+						</li>
 						{% endif %}
-					</td>
-				{% endfor %}
+						{% if today_dinner[5] %}
+						<li>
+							<span class="wtitle">Soup:</span><br />
+							{{ today_dinner[5][0]["en"] }}<br />{{ today_dinner[5][0]["zh"] }}
+							{% for m in today_dinner[5][1:] %}
+							<br />{{m["en"]}}<br />{{m["zh"]}}
+							{% endfor %}
+						</li>
+						{% endif %}
+						{% if today_dinner[6] %}
+						<li>
+							<span class="wtitle">Cafeteria Extra:</span><br />
+							{{ today_dinner[6][0]["en"] }}<br />{{ today_dinner[6][0]["zh"] }}
+							{% for m in today_dinner[6][1:] %}
+							<br />{{m["en"]}}<br />{{m["zh"]}}
+							{% endfor %}
+						</li>
+						{% endif %}
+					</ul>
+				</td>
 			</tr>
 			{% endif %}
-			{% if next_breakfast %}
+			{% if days_after_this == -1 %}
+			<tr>
+				<th scope="row">Note</th>
+				<td colspan="4">The machine-readable menus emailed to the Daily Bulletin staff do not contain Friday dinner and weekend meals.</td>
+			</tr>
+			{% endif %}
+			{% if next_breakfast and days_after_this >= 0 %}
 			<tr class="not-today">
-				<th scope="row">{{next_weekday_abbrev}}<br/>Brkfst</th>
-				{% for i in range(7) %}
-					<td>
-						{% if next_breakfast[i] %}
-						<ul>
-						{% for m in next_breakfast[i] %}
+				<th scope="row">{{weekdays_abbrev[1]}}<br/>Brkfst</th>
+				{% for i in [0, 1] %}
+				<td>
+					{% if next_breakfast[i] %}
+					<ul>
+					{% for m in next_breakfast[i] %}
+					<li>
+						{{m["en"]}}<br />{{m["zh"]}}
+					</li>
+					{% endfor %}
+					</ul>
+					{% endif %}
+				</td>
+				{% endfor %}
+				<td>
+					<ul>
+						{% for m in next_breakfast[2] %}
 						<li>
-							{{ m[0] }}<br/>{{m[1]}}
+							{{m["en"]}}<br />{{m["zh"]}}
 						</li>
 						{% endfor %}
-						</ul>
-						{% endif %}
-					</td>
-				{% endfor %}
+					</ul>
+					<ul>
+						{% for m in next_breakfast[3] %}
+						<li>
+							{{m["en"]}}<br />{{m["zh"]}}
+						</li>
+						{% endfor %}
+					</ul>
+				</td>
+				<td>
+					<ul>
+						<li>
+							<span class="wtitle">Cafeteria Extra:</span><br />
+							{{ next_breakfast[4][0]["en"] }}<br />{{ next_breakfast[4][0]["zh"] }}
+							{% for m in next_breakfast[4][1:] %}
+							<br />{{m["en"]}}<br />{{m["zh"]}}
+							{% endfor %}
+						</li>
+					</ul>
+				</td>
 			</tr>
 			{% endif %}
 		</tbody>
 	</table>
-	{% endif %}
-	-->
 
 	<h2>Daily Inspiration 每日灵感</h2>
 	<!-- UNIMPLEMENTED -->

@@ -460,7 +460,9 @@ def parse_meal_tables(
                     and tbl[j][i][-1].strip().lower()
                     != "condiments selection"  # seriously
                 ):
-                    thiswindow.append(tbl[j][i][-1].replace("，", ","))
+                    thiswindow.append(
+                        tbl[j][i][-1].replace("， ", ", ").replace("，", ", ")
+                    )
             daysmenus[i - 1].append(thiswindow)
     return daysmenus
 
