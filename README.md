@@ -1,4 +1,6 @@
-# The YK Pao School Songjiang Campus Daily Bulletin
+# The Songjiang Daily Bulletin Build System
+
+[Daily Bulletin Home Page](https://ykps.runxiyu.org/sjdb/)
 
 Daily Bulletins are bulletin boards for students and staff at the
 Songjiang campus of [YK Pao School](https://ykpaoschool.cn), which are
@@ -7,24 +9,19 @@ itineraries notices, Daily Inspirations, exam schedules (if there are
 exam sessions ongoing), the daily menu, etc.
 
 This repository contains the source code of the modern Daily Bulletin's
-build system.
-
-- [User-facing web page](https://ykps.runxiyu.org/sjdb/)
-- [Build system repository](https://git.runxiyu.org/ykps/current/sjdb-src.git/)
-  ([sr.ht mirror](https://git.sr.ht/~runxiyu/sjdb-src))
-- [Built files repository](https://git.runxiyu.org/ykps/current/sjdb-build.git/)
-  ([sr.ht mirror](https://git.sr.ht/~runxiyu/sjdb-build))
-- [Legacy repository](https://git.runxiyu.org/ykps/current/sjdb-legacy.git/)
-  ([sr.ht mirror](https://git.sr.ht/~runxiyu/sjdb-legacy))
-- [Issue tracker](https://todo.sr.ht/~runxiyu/sjdb)
-- [Public mailing list](https://lists.sr.ht/~runxiyu/sjdb)
-  for discussions
-- [Private support mailing list](mailto:sjdb@runxiyu.org)
+build system. **It is a work in progress and isn't in production use
+yet**.
 
 ## Installation
 
 ### Standard GNU/Linux systems
-The `python-pptx` is not in the Fedora/Debian repository. It is therefore recommended to install and run the project in a virtual environment. It is safer to purely use a virtual environment, but since I use some packages in other projects too, I prefer using my system package manager whenever possible:
+
+The `python-pptx` is not in the Fedora/Debian repository. It is
+therefore recommended to install and run the project in a virtual
+environment. It is safer to purely use a virtual environment, but since
+I use some packages in other projects too, I prefer using my system
+package manager whenever possible:
+
 ```sh
 sudo apt/dnf install python3-flask python3-jinja2 python3-msal python3-requests
 python3 -m venv venv --system-site-packages
@@ -32,17 +29,51 @@ python3 -m venv venv --system-site-packages
 pip3 install -r requirements.txt
 ```
 
-Or simply install it into your user directory with `pip`, although this is considered bad practice (see [PEP 0668](https://peps.python.org/pep-0668/)):
+Or simply install it into your user directory with `pip`, although this
+is considered bad practice (see
+[PEP 0668](https://peps.python.org/pep-0668/)):
+
 ```sh
 pip3 install --break-system-packages --user python-pptx
 ```
 
-If you use Guix/NixOS or other "less standard" systems, you are on your own.
+If you use Guix/NixOS or other "less standard" systems, you are on your
+own.
 
 ### macOS
-macOS is not yet supported as the main developer ([Runxi Yu](https://runxiyu.org/)) uses [Asahi Linux](https://asahilinux.org/) and [Debian](https://www.debian.org/).
+macOS is not yet supported as the main developer
+([Runxi Yu](https://runxiyu.org/)) uses
+[Asahi Linux](https://asahilinux.org/)
+and [Debian](https://www.debian.org/).
 
-If you use a manually-installed Python interpreter, using `pip install --user -r requirements.txt` should be safe. I am unsure about how Homebrew manages Python packages or how the Python interpreter preinstalled with the system works. If in doubt, use a virtual environment.
+If you use a manually-installed Python interpreter, using
+`pip install --user -r requirements.txt` should be safe. I am unsure
+about how Homebrew manages Python packages or how the Python interpreter
+preinstalled with the system works. If in doubt, use a virtual
+environment.
+
+## Configuration
+1. Copy `config.example.ini` to `config.ini` and edit it.
+2. Create a build directory and specify it in `general.build_path`.
+3. Create a web token in the daily inspiration web backend and put the
+   token in `web_service.token`.
+4. Set `credentials.username` and `credentials.password`.
+5. Make sure all other configuration options are correct. For example,
+   set `general.soffice` to a program that could open PowerPoint files
+   and blocks until they are saved and closed.
+6. Run `grant.py` and log in through your browser.
+
+## Running
+- Every weekend, after *The Week Ahead* has been published, run
+  `weekly.py`. This should generate a `week-%s.json` file where `%s` is
+  the first school day of next week in `YYYYMMDD`.
+- Run `daily.py` a day before each day a bulletin needs to be published.
+  This should generate a `day-%s.json` file where `%s` is the next day.
+- Run `pack.py` after `daily.py`. This should generate a `sjdb-%s.html`
+  file where `%s` is the next day.
+- Run `sendmail.py`. Integration isn't complete here, so change the
+  email preferences in `config.ini` every time you send. This should be
+  fixed soon when integration happens.
 
 ## GitHub Mirror
 
