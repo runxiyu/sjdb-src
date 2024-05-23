@@ -139,6 +139,18 @@ def generate(
         breakfast_tomorrow = week_data["menu"]["breakfast"][days_since_beginning + 1]
     except IndexError:
         breakfast_tomorrow = None
+    try:
+        snack_morning = week_data["snacks"][0][days_since_beginning]
+    except (KeyError, IndexError):
+        snack_morning = None
+    try:
+        snack_afternoon = week_data["snacks"][1][days_since_beginning]
+    except (KeyError, IndexError):
+        snack_afternoon = None
+    try:
+        snack_evening = week_data["snacks"][2][days_since_beginning]
+    except (KeyError, IndexError):
+        snack_evening = None
 
     data = {
         "stddate": datetime_target.strftime("%Y-%m-%d"),
@@ -154,6 +166,9 @@ def generate(
         "today_dinner": dinner_today,
         "next_breakfast": breakfast_tomorrow,
         "the_week_ahead_url": the_week_ahead_url,
+        "snack_morning": snack_morning,
+        "snack_afternoon": snack_afternoon,
+        "snack_evening": snack_evening,
     }
     with open("day-%s.json" % datetime_target.strftime("%Y%m%d"), "w") as fd:
         json.dump(data, fd, ensure_ascii=False, indent="\t")
