@@ -114,7 +114,7 @@ def generate(
         )
     calendar_object = calendar_response.json()
     pprint(calendar_object)
-    exit(1)
+    # exit(1)
 
     the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime(
         "%Y%m%d"
