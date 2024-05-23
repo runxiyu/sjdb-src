@@ -85,6 +85,7 @@ def generate(
     graph_username: str,
     graph_password: str,
     graph_scopes: list[str],
+    calendar_address: str,
     soffice: str,
 ) -> str:
     if not datetime_target.tzinfo:
@@ -92,7 +93,28 @@ def generate(
     output_filename = "week-%s.json" % datetime_target.strftime("%Y%m%d")
     logger.info("Output filename: %s" % output_filename)
 
-    token: Optional[str] = None
+    token: str = acquire_token(
+        graph_client_id, graph_authority, graph_username, graph_password, graph_scopes
+    )
+
+    calendar_response = requests.get(
+        "https://graph.microsoft.com/v1.0/users/%s/calendar/calendarView"
+        % calendar_address,
+        headers={"Authorization": "Bearer " + token},
+        params={
+            "startDateTime": datetime_target.replace(microsecond=0).isoformat(),
+            "endDateTime": (datetime_target + datetime.timedelta(days=7))
+            .replace(microsecond=0)
+            .isoformat(),
+        },
+    )
+    if calendar_response.status_code != 200:
+        raise ValueError(
+            "Calendar response status code is not 200", calendar_response.content
+        )
+    calendar_object = calendar_response.json()
+    pprint(calendar_object)
+    exit(1)
 
     the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime(
         "%Y%m%d"
@@ -101,13 +123,6 @@ def generate(
         logger.info(
             "The Week Ahead doesn't seem to exist at %s, downloading"
             % the_week_ahead_filename
-        )
-        token = acquire_token(
-            graph_client_id,
-            graph_authority,
-            graph_username,
-            graph_password,
-            graph_scopes,
         )
         download_share_url(token, the_week_ahead_url, the_week_ahead_filename)
         logger.info("Downloaded The Week Ahead to %s" % the_week_ahead_filename)
@@ -126,14 +141,6 @@ def generate(
         and os.path.isfile(menu_pdf_filename)
     ):
         logger.info("Not all menus exist, downloading")
-        if not token:
-            token = acquire_token(
-                graph_client_id,
-                graph_authority,
-                graph_username,
-                graph_password,
-                graph_scopes,
-            )
         download_menu(
             token,
             datetime_target,
@@ -152,7 +159,6 @@ def generate(
         )
     else:
         logger.info("All menus already exist")
-    del token
 
     logger.info("Beginning to parse The Week Ahead")
     the_week_ahead_presentation = pptx.Presentation(the_week_ahead_filename)
@@ -289,6 +295,8 @@ def main() -> None:
     graph_password = config["credentials"]["password"]
     graph_scopes = config["credentials"]["scope"].split(" ")
 
+    calendar_address = config["calendar"]["address"]
+
     soffice = config["general"]["soffice"]
 
     # TODO: make a function that checks the configuration
@@ -310,6 +318,7 @@ def main() -> None:
         graph_username=graph_username,
         graph_password=graph_password,
         graph_scopes=graph_scopes,
+        calendar_address=calendar_address,
         soffice=soffice,
     )
     # NOTE: generate() can get the timezone from datetime_target_aware
