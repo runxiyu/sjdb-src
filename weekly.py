@@ -46,10 +46,12 @@ import json
 import base64
 import email
 import re
+import io
 
 import msal  # type: ignore
 import pptx  # type: ignore
 import pptx.exc  # type: ignore
+import pypdf
 
 logger = logging.getLogger(__name__)
 
@@ -178,7 +180,6 @@ def generate(
     logger.info("Finished parsing The Week Ahead")
 
     logger.info("Beginning to extract menus")
-    # TODO: menu_pdf_filename not used
     try:
         menu = extract_pptx_menus(
             menu_en_filename,
@@ -187,6 +188,7 @@ def generate(
             weekly_menu_lunch_page_number,
             weekly_menu_dinner_page_number,
         )
+        snacks = fix_snacks(extract_snacks(menu_pdf_filename))
     except MealTableShapeError as e:
         logger.error(
             "Invalid menus! Opening both PPTX menus for manual intervention.", e.args[0]
@@ -199,6 +201,7 @@ def generate(
             weekly_menu_lunch_page_number,
             weekly_menu_dinner_page_number,
         )
+        snacks = fix_snacks(extract_snacks(menu_pdf_filename))
     del menu_en_filename
     del menu_zh_filename
     del menu_pdf_filename
@@ -209,6 +212,7 @@ def generate(
         "community_time": community_time,
         "aods": aods,
         "menu": menu,
+        "snacks": snacks,
     }
 
     with open(output_filename, "w") as fd:
@@ -693,6 +697,76 @@ def download_menu(
 
             with open(formatted_filename, "wb") as w:
                 w.write(payload)
+
+
+def extract_snacks(fn: str) -> tuple[list[str], list[str], list[str]]:
+
+    visitor_state: list[Optional[float]] = [None, None]
+
+    def visitor_1st_run(
+        text: str,
+        cm: list[float],
+        tm: list[float],
+        fdict: Optional[pypdf.generic._data_structures.DictionaryObject],
+        fsize: Optional[float],
+    ) -> None:
+        if "students snack" in text.lower():
+            visitor_state[0], visitor_state[1] = tm[-2], tm[-1]
+
+    pdf = pypdf.PdfReader(fn)
+    page = pdf.pages[2]
+    page.extract_text(visitor_text=visitor_1st_run)
+
+    snack_state = [0]
+    morning = []
+    afternoon = []
+    evening = []
+
+    def visitor_2nd_run(
+        text: str,
+        cm: list[float],
+        tm: list[float],
+        fdict: Optional[pypdf.generic._data_structures.DictionaryObject],
+        fsize: Optional[float],
+    ) -> None:
+        assert visitor_state[1] is not None
+        if tm[-1] < visitor_state[1]:
+            tsl = text.strip().lower()
+            if "morning snack" in tsl:
+                snack_state[0] = 1
+            elif "afternoon snack" in tsl:
+                snack_state[0] = 2
+            elif "evening snack" in tsl:
+                snack_state[0] = 3
+            elif tsl:
+                match snack_state[0]:
+                    case 1:
+                        morning.append(text.strip())
+                    case 2:
+                        afternoon.append(text.strip())
+                    case 3:
+                        evening.append(text.strip())
+                    case _:
+                        pass
+
+    page.extract_text(visitor_text=visitor_2nd_run)
+
+    return morning, afternoon, evening
+
+
+def fix_snacks(
+    extracted: tuple[list[str], list[str], list[str]]
+) -> list[list[dict[str, str]]]:
+    res: list[list[dict[str, str]],] = []
+    for snackset in extracted:
+        sres = []
+        assert len(snackset) % 2 == 0
+        for i in range(0, len(snackset), 2):
+            sres.append({"en": snackset[i], "zh": snackset[i + 1]})
+        res.append(sres)
+
+    assert len(res) == 3
+    return res
 
 
 if __name__ == "__main__":

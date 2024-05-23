@@ -6,3 +6,4 @@ logging
 msal
 python-pptx
 requests
+pypdf >= 4.2.0
