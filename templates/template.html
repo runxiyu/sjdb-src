@@ -177,6 +177,14 @@
 							<br />{{m["en"]}}<br />{{m["zh"]}}
 							{% endfor %}
 						</li>
+						{% if snack_morning %}
+						<li>
+							<span class="wtitle">10:05 Snack:</span><br />
+							{{snack_morning["en"]}}
+							<br />
+							{{snack_morning["zh"]}}
+						</li>
+						{% endif %}
 					</ul>
 				</td>
 			</tr>
@@ -234,6 +242,14 @@
 							<br />{{m["en"]}}<br />{{m["zh"]}}
 							{% endfor %}
 						</li>
+						{% if snack_afternoon %}
+						<li>
+							<span class="wtitle">15:45 Snack:</span><br />
+							{{snack_afternoon["en"]}}
+							<br />
+							{{snack_afternoon["zh"]}}
+						</li>
+						{% endif %}
 					</ul>
 				</td>
 			</tr>
@@ -298,6 +314,14 @@
 							{% endfor %}
 						</li>
 						{% endif %}
+						{% if snack_evening %}
+						<li>
+							<span class="wtitle">Evening Snack:</span><br />
+							{{snack_evening["en"]}}
+							<br />
+							{{snack_evening["zh"]}}
+						</li>
+						{% endif %}
 					</ul>
 				</td>
 			</tr>
@@ -305,7 +329,7 @@
 			{% if days_after_this == -1 %}
 			<tr>
 				<th scope="row">Note</th>
-				<td colspan="4">The machine-readable menus emailed to the Daily Bulletin staff do not contain Friday dinner and weekend meals.</td>
+				<td colspan="4">The machine-readable menus emailed to the Daily Bulletin staff do not contain end-of-week dinner and weekend meals.</td>
 			</tr>
 			{% endif %}
 			{% if next_breakfast and days_after_this >= 0 %}
