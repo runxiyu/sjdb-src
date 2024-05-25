@@ -32,7 +32,9 @@ def main(date: str, config: ConfigParser) -> None:
     with open(
         os.path.join(config["templates"]["directory"], config["templates"]["tmp"]), "r"
     ) as template_file:
-        template = Template(template_file.read(), undefined=StrictUndefined)
+        template = Template(
+            template_file.read(), undefined=StrictUndefined, autoescape=True
+        )
 
     with open(
         os.path.join(
