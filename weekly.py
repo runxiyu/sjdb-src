@@ -556,9 +556,13 @@ def extract_community_time(
     tbl = shape.table
     row_count = len(tbl.rows)
     col_count = len(tbl.columns)
-    if col_count != 5:
+    if col_count not in [4, 5]:
         raise ValueError(
-            "Community time parsing: The Week Ahead community time table does not have five columns"
+            "Community time parsing: The Week Ahead community time table does not have 4 or 5 columns"
+        )
+    if col_count == 4:
+        logger.warn(
+            "Community time warning: only four columns found, assuming that Y12 has graduated"
         )
 
     res = [["" for c in range(col_count)] for r in range(row_count)]
@@ -586,7 +590,7 @@ def extract_community_time(
                         for sw in range(cell.span_width):
                             res[r + sh][c + sw] = t
 
-    return res[1:]
+    return [x[1:] for x in res[1:]]
 
 
 def filter_mail_results_by_sender(

@@ -56,6 +56,7 @@
 	{% if community_time %}
 	<h2>Community Time 午休时间</h2>
 	<table id="community_time">
+		{% if community_time[0] | length == 4 %}
 		<colgroup><col style="width: 5%"><col style="width: 23.75%"><col style="width: 23.75%"><col style="width: 23.75%"><col style="width: 23.75%"></colgroup>
 		<thead>
 			<tr>
@@ -114,6 +115,47 @@
 				</tr>
 			{% endfor %}
 		</tbody>
+		{% else %}
+		<colgroup><col style="width: 5%"><col style="width: 31.66666667%"><col style="width: 31.66666667%"><col style="width: 31.66666667%"></colgroup>
+		<thead>
+			<tr>
+				<th scope="col">Day</th>
+				<th scope="col">Y9</th>
+				<th scope="col">Y10</th>
+				<th scope="col">Y11</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr class="today">
+				<th scope="row">{{weekdays_abbrev[0]}}</th>
+				{% if (community_time[0][0] == community_time[0][1] == community_time[0][2]) %}
+					<td colspan="3">{{ community_time[0][0] }}</td>
+				{% elif community_time[0][0] == community_time[0][1] %}
+					<td colspan="2">{{ community_time[0][0] }}</td>
+					<td colspan="1">{{ community_time[0][2] }}</td>
+				{% else %}
+					<td colspan="1">{{ community_time[0][0] }}</td>
+					<td colspan="1">{{ community_time[0][1] }}</td>
+					<td colspan="1">{{ community_time[0][2] }}</td>
+				{% endif %}
+			</tr>
+			{% for i in range(days_after_this) %}
+				<tr class="not-today">
+					<th scope="row">{{weekdays_abbrev[i+1]}}</th>
+					{% if (community_time[i+1][0] == community_time[i+1][1] == community_time[i+1][2]) %}
+						<td colspan="3">{{ community_time[i+1][0] }}</td>
+					{% elif community_time[i+1][0] == community_time[i+1][1] %}
+						<td colspan="2">{{ community_time[i+1][0] }}</td>
+						<td colspan="1">{{ community_time[i+1][2] }}</td>
+					{% else %}
+						<td colspan="1">{{ community_time[i+1][0] }}</td>
+						<td colspan="1">{{ community_time[i+1][1] }}</td>
+						<td colspan="1">{{ community_time[i+1][2] }}</td>
+					{% endif %}
+				</tr>
+			{% endfor %}
+		</tbody>
+		{% endif %}
 	</table>
 	{% endif %}
 	<h2>Delicious Dinings 今日佳肴</h2>
