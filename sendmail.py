@@ -133,8 +133,8 @@ def main() -> None:
         cc=config["sendmail"]["cc_1"].split(" "),
         bcc=config["sendmail"]["bcc_1"].split(" "),
         when=date.replace(
-            hour=int(config["test_sendmail"]["hour"]),
-            minute=int(config["test_sendmail"]["minute"]),
+            hour=int(config["sendmail"]["hour"]),
+            minute=int(config["sendmail"]["minute"]),
             second=0,
             microsecond=0,
         ),
@@ -150,8 +150,8 @@ def main() -> None:
         cc=config["sendmail"]["cc_2"].split(" "),
         bcc=config["sendmail"]["bcc_2"].split(" "),
         when=date.replace(
-            hour=int(config["test_sendmail"]["hour"]),
-            minute=int(config["test_sendmail"]["minute"]),
+            hour=int(config["sendmail"]["hour"]),
+            minute=int(config["sendmail"]["minute"]),
             second=0,
             microsecond=0,
         ),
