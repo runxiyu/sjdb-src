@@ -17,7 +17,6 @@ fi
 if [ "$(date -d "$TARGET" +"%a")" = "Mon" ]
 then
 	printf 'Target day is a Monday, running weekly.py too\n' >&2
-	exit 5
 	python3 weekly.py --date="$TARGET" || exit 1
 fi
 
