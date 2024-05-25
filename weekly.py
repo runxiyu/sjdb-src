@@ -511,58 +511,6 @@ def extract_pptx_menus(
     return mtable
 
 
-def extract_community_time(
-    prs: pptx.Presentation, community_time_page_number: int
-) -> list[list[str]]:
-
-    slide = prs.slides[community_time_page_number]
-    for shape in slide.shapes:
-        if not shape.has_table:
-            continue
-    tbl = shape.table
-    row_count = len(tbl.rows)
-    col_count = len(tbl.columns)
-    if row_count != 5 or col_count != 5:
-        raise ValueError(
-            "Community time parsing: The Week Ahead community time table is not 5x5"
-        )
-    tbll = []
-    for r in range(row_count):
-        row = [""] * col_count
-        for c in range(col_count):
-            cell_text = ""
-            cell = tbl.cell(r, c)
-            paragraphs = cell.text_frame.paragraphs
-            for paragraph in paragraphs:
-                for run in paragraph.runs:
-                    cell_text += run.text
-            if not cell_text.strip():
-                cell_text = old_cell_text  # type: ignore
-                # TODO: Use cell.is_merge_origin, cell.is_spanned,
-                # cell.span_height, cell.span_width instead
-            row[c] = cell_text
-            old_cell_text = cell_text
-        tbll.append(row)
-
-    res = []
-    for i in range(1, 5):
-        day = tbll[i]
-        dayl = []
-        for j in range(1, len(day)):
-            text = day[j]
-            if "whole school assembly" in text.lower():
-                dayl.append("Whole School Assembly")
-            elif (
-                "tutor group check-in" in text.lower()
-                or "follow up day" in text.lower()
-            ):
-                dayl.append("Tutor Time")
-            else:
-                dayl.append(text.strip())
-        res.append(dayl)
-    return res
-
-
 def extract_aods(prs: pptx.Presentation, aod_page_number: int) -> list[str]:
     slide = prs.slides[aod_page_number]
     aods = ["", "", "", ""]
@@ -595,6 +543,50 @@ def extract_aods(prs: pptx.Presentation, aod_page_number: int) -> list[str]:
         )
     # TODO: this is one of those places where Monday is *expected* to be the first day.
     # TODO: revamp this. this is ugly!
+
+
+def extract_community_time(
+    prs: pptx.Presentation, community_time_page_number: int
+) -> list[list[str]]:
+
+    slide = prs.slides[community_time_page_number]
+    for shape in slide.shapes:
+        if not shape.has_table:
+            continue
+    tbl = shape.table
+    row_count = len(tbl.rows)
+    col_count = len(tbl.columns)
+    if col_count != 5:
+        raise ValueError(
+            "Community time parsing: The Week Ahead community time table does not have five columns"
+        )
+
+    res = [["" for c in range(col_count)] for r in range(row_count)]
+
+    for r in range(row_count):
+        for c in range(col_count):
+            cell = tbl.cell(r, c)
+            if not cell.is_spanned:
+                t = ""
+                for p in cell.text_frame.paragraphs:
+                    for pr in p.runs:
+                        t += pr.text
+                t = t.strip()
+                if "whole school assembly" in t.lower():
+                    t = "Whole School Assembly"
+                elif (
+                    "tutor group check-in" in t.lower()
+                    or "follow up day" in t.lower()
+                    or "open session for tutor and tutee" in t.lower()
+                ):
+                    t = "Tutor Time"
+                res[r][c] = t
+                if cell.is_merge_origin:
+                    for sh in range(cell.span_height):
+                        for sw in range(cell.span_width):
+                            res[r + sh][c + sw] = t
+
+    return res[1:]
 
 
 def filter_mail_results_by_sender(
