@@ -166,6 +166,9 @@ def generate(
         with open(inspfn, "w") as inspfd:
             json.dump(inspjq, inspfd, indent="\t")
         inspiration_type = inspjq["type"]
+        if inspiration_type not in ["text", "media", "canteen"]:
+            logger.warning("Inspiration type for %s invalid, skipping" % inspfn)
+            continue
         inspiration_origin = inspjq["origin"]
         inspiration_shared_by = inspjq["uname"]
         inspiration_text = inspjq["text"]

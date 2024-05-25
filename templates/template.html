@@ -384,7 +384,27 @@
 	<p>
 	We need inspirations! Please feel free to <a href="https://ykps.runxiyu.org/sjdb/submit">submit one</a>.
 	</p>
-	<!-- UNIMPLEMENTED -->
+	{% if inspiration_type %}
+		{% if inspiration_type == "text" %}
+		<pre>{{ inspiration_text }}</pre>
+		{% elif inspiration_type == "media" %}
+		<img src="data:{{inspiration_image_mime}};base64,{{ inspiration_image_data }}" />
+			{% if inspiration_text %}
+			<pre>{{ inspiration_text }}</pre>
+			{% endif %}
+		{% elif inspiration_type == "canteen" %}
+		<pre>{{ inspiration_text }}</pre>
+		{% endif %}
+		{% if inspiration_shared_by %}
+		<p><cite>Shared by {{inspiration_shared_by}}.<br/>由{{inspiration_shared_by}}分享。</cite></p></p>
+		{% else %}
+		<p><cite>Shared anonymously.<br />匿名分享。</cite></p>
+		{% endif %}
+	{% else %}
+	<p>
+	Unfortunately, there is no inspiration today.
+	</p>
+	{% endif %}
 
 	<h2>On This Day 以史为鉴</h2>
 	<!-- UNIMPLEMENTED -->
