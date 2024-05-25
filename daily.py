@@ -155,6 +155,7 @@ def generate(
     except (KeyError, IndexError):
         snack_evening = None
 
+    logger.info("Checking for inspirations")
     for inspfn in os.listdir():
         if not inspfn.startswith("inspire-"):
             continue
@@ -173,6 +174,19 @@ def generate(
         inspiration_shared_by = inspjq["uname"]
         inspiration_text = inspjq["text"]
         inspiration_image_fn = inspjq["file"]
+        if inspiration_image_fn:
+            logger.info("Inspiration has attachment %s" % inspiration_image_fn)
+            inspiration_image_mime, inspiration_image_extra_encoding = (
+                mimetypes.guess_type(inspiration_image_fn)
+            )
+            assert not inspiration_image_extra_encoding
+            with open(
+                "inspattach-%s" % os.path.basename(inspiration_image_fn), "rb"
+            ) as ifd:
+                inspiration_image_data = base64.b64encode(ifd.read()).decode("ascii")
+        else:
+            inspiration_image_data = None
+            inspiration_image_mime = None
         break
     else:
         inspiration_type = None
@@ -180,19 +194,6 @@ def generate(
         inspiration_shared_by = None
         inspiration_text = None
         inspiration_image_fn = None
-
-    if inspiration_image_fn:
-        inspiration_image_mime, inspiration_image_extra_encoding = mimetypes.guess_type(
-            inspiration_image_fn
-        )
-        assert not inspiration_image_extra_encoding
-        with open(
-            "inspattach-%s" % os.path.basename(inspiration_image_fn), "rb"
-        ) as ifd:
-            inspiration_image_data = base64.b64encode(ifd.read()).decode("ascii")
-    else:
-        inspiration_image_data = None
-        inspiration_image_mime = None
 
     data = {
         "stddate": datetime_target.strftime("%Y-%m-%d"),
