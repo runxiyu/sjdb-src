@@ -165,12 +165,18 @@ def generate(
             inspjq["used"] = True
         with open(inspfn, "w") as inspfd:
             json.dump(inspjq, inspfd, indent="\t")
+        inspiration_type = inspjq["type"]
+        inspiration_origin = inspjq["origin"]
+        inspiration_shared_by = inspjq["uname"]
+        inspiration_text = inspjq["text"]
+        inspiration_image_fn = inspjq["file"]
         break
-    inspiration_type = inspjq["type"]
-    inspiration_origin = inspjq["origin"]
-    inspiration_shared_by = inspjq["uname"]
-    inspiration_text = inspjq["text"]
-    inspiration_image_fn = inspjq["file"]
+    else:
+        inspiration_type = None
+        inspiration_origin = None
+        inspiration_shared_by = None
+        inspiration_text = None
+        inspiration_image_fn = None
 
     if inspiration_image_fn:
         inspiration_image_mime, inspiration_image_extra_encoding = mimetypes.guess_type(
