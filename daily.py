@@ -156,6 +156,8 @@ def generate(
         snack_evening = None
 
     logger.info("Checking for inspirations")
+    # TODO: Should probably allow inspirations to be reused on the same day
+    # e.g. "used" should be set to the date it was used on
     for inspfn in os.listdir():
         if not inspfn.startswith("inspire-"):
             continue
@@ -189,6 +191,8 @@ def generate(
             inspiration_image_mime = None
         break
     else:
+        inspiration_image_data = None
+        inspiration_image_mime = None
         inspiration_type = None
         inspiration_origin = None
         inspiration_shared_by = None
