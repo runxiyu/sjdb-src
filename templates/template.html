@@ -368,12 +368,6 @@
 				</td>
 			</tr>
 			{% endif %}
-			{% if days_after_this == -1 %}
-			<tr>
-				<th scope="row">Note</th>
-				<td colspan="4">The machine-readable menus emailed to the Daily Bulletin staff do not contain end-of-week dinner and weekend meals.</td>
-			</tr>
-			{% endif %}
 			{% if next_breakfast and days_after_this >= 0 %}
 			<tr class="not-today">
 				<th scope="row">{{weekdays_abbrev[1]}}<br/>Brkfst</th>
@@ -421,6 +415,9 @@
 			{% endif %}
 		</tbody>
 	</table>
+	{% if days_after_this == -1 %}
+	<p class="ps">Note: The machine-readable menus emailed to the Daily Bulletin staff do not contain end-of-week dinner and weekend meals.</p>
+	{% endif %}
 
 	<h2>Daily Inspiration 每日灵感</h2>
 	<p>
