@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Use the Outlook REST API to delay sending an email
+# Send the Daily Bulletin the next morning
 # Copyright (C) 2024 Runxi Yu <https://runxiyu.org>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -20,9 +20,11 @@
 from __future__ import annotations
 import logging
 import msal  # type: ignore
+import os
 import requests
 import datetime
 import zoneinfo
+import argparse
 from configparser import ConfigParser
 from typing import Any, Optional
 
@@ -89,24 +91,65 @@ def sendmail(
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Daily Bulletin Sender")
+    parser.add_argument(
+        "--date",
+        default=None,
+        help="the date of the bulletin to send, in local time, in YYYY-MM-DD; defaults to tomorrow",
+    )
+    parser.add_argument(
+        "--config", default="config.ini", help="path to the configuration file"
+    )
+    args = parser.parse_args()
     config = ConfigParser()
-    config.read("config.ini")
+    config.read(args.config)
+    if args.date:
+        date = datetime.datetime.strptime(args.date, "%Y-%m-%d").replace(
+            tzinfo=zoneinfo.ZoneInfo(config["general"]["timezone"])
+        )
+    else:
+        date = datetime.datetime.now(
+            zoneinfo.ZoneInfo(config["general"]["timezone"])
+        ) + datetime.timedelta(days=1)
+
+    os.chdir(config["general"]["build_path"])
+
+    html_filename = "sjdb-%s.html" % date.strftime("%Y%m%d")
+    with open(html_filename, "r") as html_fd:
+        html = html_fd.read()
+
     app = msal.PublicClientApplication(
         config["credentials"]["client_id"],
         authority=config["credentials"]["authority"],
     )
     token = acquire_token(app, config)
+
     sendmail(
         token,
-        subject=config["test_sendmail"]["subject"],
-        body=open(config["test_sendmail"]["local_html_path"], "r").read(),
-        to=config["test_sendmail"]["to"].split(" "),
-        cc=config["test_sendmail"]["cc"].split(" "),
-        bcc=config["test_sendmail"]["bcc"].split(" "),
-        when=(
-            datetime.datetime.now(tz=zoneinfo.ZoneInfo(config["general"]["timezone"]))
-            + datetime.timedelta(days=1)
-        ).replace(
+        subject=config["sendmail"]["subject_format"]
+        % date.strftime(config["sendmail"]["subject_date_format"]),
+        body=html,
+        to=config["sendmail"]["to_1"].split(" "),
+        cc=config["sendmail"]["cc_1"].split(" "),
+        bcc=config["sendmail"]["bcc_1"].split(" "),
+        when=date.replace(
+            hour=int(config["test_sendmail"]["hour"]),
+            minute=int(config["test_sendmail"]["minute"]),
+            second=0,
+            microsecond=0,
+        ),
+        content_type="HTML",
+        importance="Normal",
+    )
+    sendmail(
+        token,
+        subject=config["sendmail"]["subject_format"]
+        % date.strftime(config["sendmail"]["subject_date_format"]),
+        body=html,
+        to=config["sendmail"]["to_2"].split(" "),
+        cc=config["sendmail"]["cc_2"].split(" "),
+        bcc=config["sendmail"]["bcc_2"].split(" "),
+        when=date.replace(
             hour=int(config["test_sendmail"]["hour"]),
             minute=int(config["test_sendmail"]["minute"]),
             second=0,
