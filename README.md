@@ -71,9 +71,7 @@ environment.
   This should generate a `day-%s.json` file where `%s` is the next day.
 - Run `pack.py` after `daily.py`. This should generate a `sjdb-%s.html`
   file where `%s` is the next day.
-- Run `sendmail.py`. Integration isn't complete here, so change the
-  email preferences in `config.ini` every time you send. This should be
-  fixed soon when integration happens.
+- Run `sendmail.py`.
 
 ## GitHub Mirror
 
