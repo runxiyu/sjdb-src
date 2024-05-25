@@ -564,7 +564,7 @@ def extract_community_time(
             "Community time parsing: The Week Ahead community time table does not have 4 or 5 columns"
         )
     if col_count == 4:
-        logger.warn(
+        logger.warning(
             "Community time warning: only four columns found, assuming that Y12 has graduated"
         )
 
