@@ -10,7 +10,10 @@ tomorrow:
 	python3 pack.py --date=$(TOMORROW)
 	python3 sendmail.py --date=$(TOMORROW)
 
-%:
+day-%:
 	python3 daily.py --date=$@
 	python3 pack.py --date=$@
 	python3 sendmail.py --date=$@
+
+week-%:
+	python3 weekly.py --date=$@
