@@ -19,12 +19,15 @@
 
 from __future__ import annotations
 from configparser import ConfigParser
+import typing
 import json
 import argparse
 import logging
 import datetime
 import zoneinfo
 import os
+import base64
+import mimetypes
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +155,36 @@ def generate(
     except (KeyError, IndexError):
         snack_evening = None
 
+    for inspfn in os.listdir():
+        if not inspfn.startswith("inspire-"):
+            continue
+        with open(inspfn, "r") as inspfd:
+            inspjq = json.load(inspfd)
+            if (not inspjq["approved"]) or inspjq["used"]:
+                continue
+            inspjq["used"] = True
+        with open(inspfn, "w") as inspfd:
+            json.dump(inspjq, inspfd, indent="\t")
+        break
+    inspiration_type = inspjq["type"]
+    inspiration_origin = inspjq["origin"]
+    inspiration_shared_by = inspjq["uname"]
+    inspiration_text = inspjq["text"]
+    inspiration_image_fn = inspjq["file"]
+
+    if inspiration_image_fn:
+        inspiration_image_mime, inspiration_image_extra_encoding = mimetypes.guess_type(
+            inspiration_image_fn
+        )
+        assert not inspiration_image_extra_encoding
+        with open(
+            "inspattach-%s" % os.path.basename(inspiration_image_fn), "rb"
+        ) as ifd:
+            inspiration_image_data = base64.b64encode(ifd.read()).decode("ascii")
+    else:
+        inspiration_image_data = None
+        inspiration_image_mime = None
+
     data = {
         "stddate": datetime_target.strftime("%Y-%m-%d"),
         "community_time": week_data["community_time"][days_since_beginning:],
@@ -169,6 +202,12 @@ def generate(
         "snack_morning": snack_morning,
         "snack_afternoon": snack_afternoon,
         "snack_evening": snack_evening,
+        "inspiration_type": inspiration_type,
+        "inspiration_shared_by": inspiration_shared_by,
+        "inspiration_origin": inspiration_origin,
+        "inspiration_text": inspiration_text,
+        "inspiration_image_data": inspiration_image_data,
+        "inspiration_image_mime": inspiration_image_mime,
     }
     with open("day-%s.json" % datetime_target.strftime("%Y%m%d"), "w") as fd:
         json.dump(data, fd, ensure_ascii=False, indent="\t")
