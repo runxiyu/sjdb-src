@@ -83,4 +83,5 @@ You are advised to send patches to the
 to
 [submit patches](https://git-send-email.io)
 whenever possible, but if you must use GitHub, you could submit a pull
-request, and it will be reviewed sometime.
+request, and it will be automatically converted and sent to the mailing
+list as a patch, by a [Webhook](https://git.runxiyu.org/runxiyu/current/hybrid.git/tree/hybrid.py).
