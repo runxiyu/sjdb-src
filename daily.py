@@ -109,7 +109,7 @@ def generate(
         day_of_cycle = cycle_data[datetime_target.strftime("%Y-%m-%d")]
     except KeyError:
         day_of_cycle = "SA"
-        logger.info('Note: Cycle day not found, using "SA"')
+        logger.warn('Cycle day not found, using "SA"')
 
     for days_since_beginning in range(0, 5):
         week_start_date = datetime_target - datetime.timedelta(
