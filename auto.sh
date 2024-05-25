@@ -20,7 +20,9 @@ then
 	python3 weekly.py --date="$TARGET" || exit 1
 fi
 
-printf 'Generating...'
+printf 'Running daily.py\n' >&2
 python3 daily.py --date="$TARGET" || exit 2
+printf 'Running pack.py\n' >&2
 python3 pack.py --date="$TARGET" || exit 3
+printf 'Running sendmail.py\n' >&2
 python3 sendmail.py --date="$TARGET" || exit 4
