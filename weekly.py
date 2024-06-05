@@ -703,8 +703,10 @@ def download_menu(
             elif part.get_content_type() == "application/pdf":
                 formatted_filename = menu_pdf_filename
 
+            pb = bytes(payload)
+
             with open(formatted_filename, "wb") as w:
-                w.write(payload)
+                w.write(pb)
 
 
 def extract_snacks(fn: str) -> tuple[list[str], list[str], list[str]]:
@@ -725,10 +727,19 @@ def extract_snacks(fn: str) -> tuple[list[str], list[str], list[str]]:
     page = pdf.pages[2]
     page.extract_text(visitor_text=visitor_1st_run)
 
-    snack_state = [0]
-    morning = []
-    afternoon = []
-    evening = []
+    snack_state: list[int] = [0]
+    morning: list[str] = []
+    afternoon: list[str] = []
+    evening: list[str] = []
+
+    if (not visitor_state[1]) or (not visitor_state[2]):
+        page = pdf.pages[3]
+        page.extract_text(visitor_text=visitor_1st_run)
+
+        snack_state = [0]
+        morning = []
+        afternoon = []
+        evening = []
 
     def visitor_2nd_run(
         text: str,
@@ -768,7 +779,20 @@ def fix_snacks(
     res: list[list[dict[str, str]],] = []
     for snackset in extracted:
         sres = []
-        assert len(snackset) % 2 == 0
+        if len(snackset) % 2 == 0:
+            pass
+        else:
+            roasted_bread = False
+            actual_snack_set = []
+            for p in snackset:
+                if p == "Roasted Bread":
+                    roasted_bread = True
+                elif roasted_bread and p == "with Ham and Cheese":
+                    actual_snack_set.append("Roasted Bread with Ham and Cheese")
+                    roasted_bread = False
+                else:
+                    actual_snack_set.append(p)
+            snackset = actual_snack_set
         for i in range(0, len(snackset), 2):
             sres.append({"en": snackset[i], "zh": snackset[i + 1]})
         res.append(sres)

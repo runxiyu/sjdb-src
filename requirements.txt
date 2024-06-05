@@ -1,8 +1,5 @@
-argparse
-configparser
 flask
 jinja2
-logging
 msal
 python-pptx
 requests
