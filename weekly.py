@@ -732,7 +732,7 @@ def extract_snacks(fn: str) -> tuple[list[str], list[str], list[str]]:
     afternoon: list[str] = []
     evening: list[str] = []
 
-    if (not visitor_state[1]) or (not visitor_state[2]):
+    if (not visitor_state[0]) or (not visitor_state[1]):
         page = pdf.pages[3]
         page.extract_text(visitor_text=visitor_1st_run)
 
