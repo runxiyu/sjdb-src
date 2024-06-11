@@ -82,6 +82,7 @@ def sendmail(
         headers={"Authorization": "Bearer " + token},
     )
     if response2.status_code != 202:
+        print(response2.content)
         raise ValueError(
             "Graph response to messages/%s/send returned someething other than 202 Accepted"
             % response["id"],
