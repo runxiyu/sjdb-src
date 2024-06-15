@@ -1,6 +1,6 @@
 # The Songjiang Daily Bulletin Build System
 
-[Daily Bulletin Home Page](https://ykps.runxiyu.org/sjdb/)
+[Daily Bulletin Home Page](https://sj.ykps.net/sjdb/)
 
 Daily Bulletins are bulletin boards for students and staff at the
 Songjiang campus of [YK Pao School](https://ykpaoschool.cn), which are
