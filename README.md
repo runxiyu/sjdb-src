@@ -41,10 +41,8 @@ If you use Guix/NixOS or other "less standard" systems, you are on your
 own.
 
 ### macOS
-macOS is not yet supported as the main developer
-([Runxi Yu](https://runxiyu.org/)) uses
-[Asahi Linux](https://asahilinux.org/)
-and [Debian](https://www.debian.org/).
+
+macOS is not yet supported but it should work:
 
 If you use a manually-installed Python interpreter, using
 `pip install --user -r requirements.txt` should be safe. I am unsure
@@ -53,6 +51,7 @@ preinstalled with the system works. If in doubt, use a virtual
 environment.
 
 ## Configuration
+
 1. Copy `config.example.ini` to `config.ini` and edit it.
 2. Create a build directory and specify it in `general.build_path`.
 3. Create a web token in the daily inspiration web backend and put the
@@ -64,6 +63,9 @@ environment.
 6. Run `grant.py` and log in through your browser.
 
 ## Running
+
+### Running individual scripts
+
 - Every weekend, after *The Week Ahead* has been published, run
   `weekly.py`. This should generate a `week-%s.json` file where `%s` is
   the first school day of next week in `YYYYMMDD`.
@@ -72,6 +74,12 @@ environment.
 - Run `pack.py` after `daily.py`. This should generate a `sjdb-%s.html`
   file where `%s` is the next day.
 - Run `sendmail.py`.
+
+### Running automatically
+
+- `make` builds and sends tomorrow's bulletin
+- `make <YYYY-MM-DD>` builds and sends the bulletin for the specified day
+- Note that the build script only runs `weekly.py` if the target day is a Monday
 
 ## GitHub Mirror
 
