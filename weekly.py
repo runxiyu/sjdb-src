@@ -36,7 +36,6 @@ from configparser import ConfigParser
 from pprint import pprint
 import argparse
 import logging
-import requests
 import subprocess
 import datetime
 import zoneinfo
@@ -48,6 +47,7 @@ import email
 import re
 import io
 
+import requests
 import msal  # type: ignore
 import pptx  # type: ignore
 import pptx.exc  # type: ignore
