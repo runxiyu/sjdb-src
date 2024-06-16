@@ -55,7 +55,7 @@ def main() -> None:
     response_json = requests.get(
         api_base + "rs", headers={"Authorization": "Bearer %s" % token}
     ).json()
-    assert type(response_json) is list
+    assert isinstance(response_json, list)
     remote_submission_list = set(response_json)
 
     local_submission_list = set(

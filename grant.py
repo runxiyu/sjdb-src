@@ -38,7 +38,7 @@ def acquire_token_interactive(
     )
 
     if "access_token" in result:
-        assert type(result["access_token"]) is str
+        assert isinstance(result["access_token"], str)
         return result["access_token"]
     else:
         raise ValueError(
@@ -64,7 +64,7 @@ def test_login(
         "https://graph.microsoft.com/v1.0/me",
         headers={"Authorization": "Bearer " + token},
     ).json()
-    assert type(graph_response) is dict
+    assert isinstance(graph_response, dict)
     return graph_response
 
 

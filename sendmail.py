@@ -37,7 +37,7 @@ def acquire_token(app: msal.PublicClientApplication, config: ConfigParser) -> st
     )
 
     if "access_token" in result:
-        assert type(result["access_token"]) is str
+        assert isinstance(result["access_token"], str)
         return result["access_token"]
     else:
         raise ValueError("Authentication error in password login")

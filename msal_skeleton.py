@@ -39,7 +39,7 @@ def acquire_token(config: ConfigParser) -> str:
     )
 
     if "access_token" in result:
-        assert type(result["access_token"]) is str
+        assert isinstance(result["access_token"], str)
         return result["access_token"]
     else:
         raise ValueError("Authentication error in password login")

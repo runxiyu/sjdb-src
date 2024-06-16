@@ -370,7 +370,7 @@ def acquire_token(
     )
 
     if "access_token" in result:
-        assert type(result["access_token"]) is str
+        assert isinstance(result["access_token"], str)
         return result["access_token"]
     else:
         raise ValueError("Authentication error in password login")
@@ -392,8 +392,8 @@ def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
             ]
         },
     ).json()["value"][0]["hitsContainers"][0]["hits"]
-    assert type(hits) is list
-    assert type(hits[0]) is dict
+    assert isinstance(hits, list)
+    assert isinstance(hits[0], dict)
     return hits
 
 
@@ -414,8 +414,8 @@ def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
         for c in range(col_count):
             cell_text = ""
             cell = tbl.cell(r, c)
-            assert type(cell.span_height) is int
-            assert type(cell.span_width) is int
+            assert isinstance(cell.span_height, int)
+            assert isinstance(cell.span_width, int)
             paragraphs = cell.text_frame.paragraphs
             for paragraph in paragraphs:
                 for run in paragraph.runs:
@@ -679,7 +679,7 @@ def download_menu(
             ]
 
             if payload_filename_encoding is None:
-                assert type(payload_filename_encoded) is str
+                assert isinstance(payload_filename_encoded, str)
                 filename = payload_filename_encoded
             elif type(payload_filename_encoded) is bytes:  # type: ignore
                 filename = payload_filename_encoded.decode(payload_filename_encoding)  # type: ignore
