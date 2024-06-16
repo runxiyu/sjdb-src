@@ -50,6 +50,7 @@ def something(token: str) -> Any:
     return requests.get(
         "https://graph.microsoft.com/v1.0/me",
         headers={"Authorization": "Bearer " + token},
+        timeout=20,
     ).json()
 
 

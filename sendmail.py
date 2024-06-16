@@ -76,10 +76,12 @@ def sendmail(
         "https://graph.microsoft.com/v1.0/me/messages",
         json=data,
         headers={"Authorization": "Bearer " + token},
+        timeout=20,
     ).json()
     response2 = requests.post(
         "https://graph.microsoft.com/v1.0/me/messages/%s/send" % response["id"],
         headers={"Authorization": "Bearer " + token},
+        timeout=20,
     )
     if response2.status_code != 202:
         print(response2.content)

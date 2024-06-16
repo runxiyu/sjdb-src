@@ -107,6 +107,7 @@ def generate(
             .replace(microsecond=0)
             .isoformat(),
         },
+        timeout=15,
     )
     if calendar_response.status_code != 200:
         raise ValueError(
@@ -339,6 +340,7 @@ def download_share_url(
         "https://graph.microsoft.com/v1.0/shares/%s/driveItem"
         % encode_sharing_url(url),
         headers={"Authorization": "Bearer " + token},
+        timeout=20,
     ).json()["@microsoft.graph.downloadUrl"]
 
     with requests.get(
@@ -348,6 +350,7 @@ def download_share_url(
             "Accept-Encoding": "identity",
         },
         stream=True,
+        timeout=20,
     ) as r:
         with open(local_filename, "wb") as fd:
             shutil.copyfileobj(r.raw, fd)
@@ -391,6 +394,7 @@ def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
                 }
             ]
         },
+        timeout=20,
     ).json()["value"][0]["hitsContainers"][0]["hits"]
     assert isinstance(hits, list)
     assert isinstance(hits[0], dict)
@@ -660,6 +664,7 @@ def download_menu(
             "Accept-Encoding": "identity",
         },
         stream=True,
+        timeout=20,
     ) as r:
         msg = email.message_from_bytes(r.content)
 

@@ -63,6 +63,7 @@ def test_login(
     graph_response = requests.get(
         "https://graph.microsoft.com/v1.0/me",
         headers={"Authorization": "Bearer " + token},
+        timeout=20,
     ).json()
     assert isinstance(graph_response, dict)
     return graph_response

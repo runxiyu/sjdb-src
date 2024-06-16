@@ -53,7 +53,8 @@ def main() -> None:
     token = config["web_service"]["token"].strip()
 
     response_json = requests.get(
-        api_base + "rs", headers={"Authorization": "Bearer %s" % token}
+        api_base + "rs", headers={"Authorization": "Bearer %s" % token},
+        timeout=20,
     ).json()
     assert isinstance(response_json, list)
     remote_submission_list = set(response_json)
@@ -75,6 +76,7 @@ def main() -> None:
                 "Accept-Encoding": "identity",
             },
             stream=True,
+            timeout=20,
         ) as r:
             try:
                 sub = json.load(r.raw)
@@ -95,6 +97,7 @@ def main() -> None:
                     "Accept-Encoding": "identity",
                 },
                 stream=True,
+                timeout=20,
             ) as r:
                 with open("inspattach-%s" % os.path.basename(sub["file"]), "wb") as fd:
                     logger.info(
