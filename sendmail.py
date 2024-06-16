@@ -18,15 +18,14 @@
 #
 
 from __future__ import annotations
-import logging
-import msal  # type: ignore
 import os
-import requests
 import datetime
 import zoneinfo
 import argparse
 from configparser import ConfigParser
-from typing import Any, Optional
+from typing import Optional
+import msal  # type: ignore
+import requests
 
 
 def acquire_token(app: msal.PublicClientApplication, config: ConfigParser) -> str:
@@ -39,8 +38,7 @@ def acquire_token(app: msal.PublicClientApplication, config: ConfigParser) -> st
     if "access_token" in result:
         assert isinstance(result["access_token"], str)
         return result["access_token"]
-    else:
-        raise ValueError("Authentication error in password login")
+    raise ValueError("Authentication error in password login")
 
 
 def sendmail(
@@ -118,7 +116,7 @@ def main() -> None:
     os.chdir(config["general"]["build_path"])
 
     html_filename = "sjdb-%s.html" % date.strftime("%Y%m%d")
-    with open(html_filename, "r") as html_fd:
+    with open(html_filename, "r", encoding="utf-8") as html_fd:
         html = html_fd.read()
 
     app = msal.PublicClientApplication(

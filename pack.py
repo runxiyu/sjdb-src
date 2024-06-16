@@ -17,7 +17,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from jinja2 import Template, StrictUndefined
 from configparser import ConfigParser
 import os
 import json
@@ -25,12 +24,15 @@ import datetime
 import argparse
 import logging
 import zoneinfo
+from jinja2 import Template, StrictUndefined
 
 
 def main(date: str, config: ConfigParser) -> None:
 
     with open(
-        os.path.join(config["templates"]["directory"], config["templates"]["tmp"]), "r"
+        os.path.join(config["templates"]["directory"], config["templates"]["tmp"]),
+        "r",
+        encoding="utf-8",
     ) as template_file:
         template = Template(
             template_file.read(), undefined=StrictUndefined, autoescape=True
@@ -41,6 +43,7 @@ def main(date: str, config: ConfigParser) -> None:
             config["general"]["build_path"], "day-" + date.replace("-", "") + ".json"
         ),
         "r",
+        encoding="utf-8",
     ) as fd:
         data = json.load(fd)
 

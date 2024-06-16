@@ -19,7 +19,6 @@
 
 from __future__ import annotations
 from configparser import ConfigParser
-import typing
 import json
 import argparse
 import logging
@@ -80,7 +79,7 @@ def main() -> None:
     logger.info("Generating for %s" % datetime_target_aware.strftime("%Y-%m-%d %Z"))
 
     cycle_data_path = config["general"]["cycle_data"]
-    with open(cycle_data_path, "r") as cycle_data_file:
+    with open(cycle_data_path, "r", encoding="utf-8") as cycle_data_file:
         cycle_data = json.load(cycle_data_file)
 
     build_path = config["general"]["build_path"]
@@ -104,12 +103,12 @@ def generate(
     weekday_en = DAYNAMES[weekday_enum]
     weekday_zh = DAYNAMES_CHINESE[weekday_enum]
     weekdays_short = DAYNAMES_SHORT[weekday_enum:]
-    next_weekday_short = DAYNAMES_SHORT[weekday_enum + 1]
+    # next_weekday_short = DAYNAMES_SHORT[weekday_enum + 1]
     try:
         day_of_cycle = cycle_data[datetime_target.strftime("%Y-%m-%d")]
     except KeyError:
         day_of_cycle = "SA"
-        logger.warn('Cycle day not found, using "SA"')
+        logger.warning('Cycle day not found, using "SA"')
 
     for days_since_beginning in range(0, 5):
         week_start_date = datetime_target - datetime.timedelta(
@@ -117,7 +116,9 @@ def generate(
         )
         try:
             with open(
-                "week-%s.json" % week_start_date.strftime("%Y%m%d"), "r"
+                "week-%s.json" % week_start_date.strftime("%Y%m%d"),
+                "r",
+                encoding="utf-8",
             ) as week_file:
                 week_data = json.load(week_file)
         except FileNotFoundError:
@@ -161,12 +162,12 @@ def generate(
     for inspfn in os.listdir():
         if not inspfn.startswith("inspire-"):
             continue
-        with open(inspfn, "r") as inspfd:
+        with open(inspfn, "r", encoding="utf-8") as inspfd:
             inspjq = json.load(inspfd)
             if (not inspjq["approved"]) or inspjq["used"]:
                 continue
             inspjq["used"] = True
-        with open(inspfn, "w") as inspfd:
+        with open(inspfn, "w", encoding="utf-8") as inspfd:
             json.dump(inspjq, inspfd, indent="\t")
         inspiration_type = inspjq["type"]
         if inspiration_type not in ["text", "media", "canteen"]:
@@ -223,7 +224,9 @@ def generate(
         "inspiration_image_data": inspiration_image_data,
         "inspiration_image_mime": inspiration_image_mime,
     }
-    with open("day-%s.json" % datetime_target.strftime("%Y%m%d"), "w") as fd:
+    with open(
+        "day-%s.json" % datetime_target.strftime("%Y%m%d"), "w", encoding="utf-8"
+    ) as fd:
         json.dump(data, fd, ensure_ascii=False, indent="\t")
     logger.info(
         "Data dumped to " + "day-%s.json" % datetime_target.strftime("%Y%m%d"),

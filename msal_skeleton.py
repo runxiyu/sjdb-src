@@ -18,13 +18,10 @@
 #
 
 from __future__ import annotations
-import logging
-import msal  # type: ignore
-import requests
-import datetime
 from configparser import ConfigParser
-from typing import Any, Optional
-import json
+from typing import Any
+import requests
+import msal  # type: ignore
 
 
 def acquire_token(config: ConfigParser) -> str:
@@ -41,8 +38,7 @@ def acquire_token(config: ConfigParser) -> str:
     if "access_token" in result:
         assert isinstance(result["access_token"], str)
         return result["access_token"]
-    else:
-        raise ValueError("Authentication error in password login")
+    raise ValueError("Authentication error in password login")
 
 
 # TODO

@@ -18,12 +18,11 @@
 #
 
 from __future__ import annotations
-import logging
-import msal  # type: ignore
-import requests
 from pprint import pprint
 from configparser import ConfigParser
 from typing import Any
+import requests
+import msal  # type: ignore
 
 # logging.basicConfig(level=logging.DEBUG)
 # logging.getLogger("msal").setLevel(logging.INFO)
@@ -40,10 +39,9 @@ def acquire_token_interactive(
     if "access_token" in result:
         assert isinstance(result["access_token"], str)
         return result["access_token"]
-    else:
-        raise ValueError(
-            "Authentication error while trying to interactively acquire a token"
-        )
+    raise ValueError(
+        "Authentication error while trying to interactively acquire a token"
+    )
 
 
 def test_login(

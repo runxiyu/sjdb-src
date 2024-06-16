@@ -21,23 +21,18 @@
 
 from __future__ import annotations
 from typing import Union, TypeAlias
-from jinja2 import Template, StrictUndefined
 import json
-from flask import (
-    Flask,
-    Response,
-    render_template,
-    request,
-    redirect,
-    abort,
-    send_from_directory,
-    make_response,
-)
-from werkzeug.wrappers.response import Response as werkzeugResponse
 import datetime
 import zoneinfo
 import os
 import configparser
+from jinja2 import StrictUndefined
+from werkzeug.wrappers.response import Response as werkzeugResponse
+from flask import (
+    Flask,
+    Response,
+    render_template,
+)
 
 ResponseType: TypeAlias = Union[Response, werkzeugResponse, str]
 
@@ -77,6 +72,7 @@ def index() -> ResponseType:
             ).strftime("%Y%m%d"),
         ),
         "r",
+        encoding="utf-8",
     ) as fd:
         data = json.load(fd)
     return render_template("template.html", **data)
@@ -85,7 +81,9 @@ def index() -> ResponseType:
 @app.route("/<date>")
 def date(date: str) -> ResponseType:
     with open(
-        os.path.join(config["general"]["build_path"], "day-%s.json" % date), "r"
+        os.path.join(config["general"]["build_path"], "day-%s.json" % date),
+        "r",
+        encoding="utf-8",
     ) as fd:
         data = json.load(fd)
     return render_template("template.html", **data)

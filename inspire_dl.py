@@ -24,12 +24,9 @@ from configparser import ConfigParser
 import json
 import argparse
 import logging
-import datetime
-import zoneinfo
 import os
-import sys
-import requests
 import shutil
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +82,7 @@ def main() -> None:
                 logger.error("inspire-%s is broken, skipping" % sn)
         sub["used"] = False
         sub["approved"] = False
-        with open("inspire-%s" % os.path.basename(sn), "w") as fd:
+        with open("inspire-%s" % os.path.basename(sn), "w", encoding="utf-8") as fd:
             json.dump(sub, fd, indent="\t")
         if not sub["file"]:
             logger.info("No attachment")
