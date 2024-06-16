@@ -45,7 +45,6 @@ import json
 import base64
 import email
 import re
-import io
 
 import requests
 import msal  # type: ignore
@@ -173,7 +172,7 @@ def generate(
             "Invalid community time! Opening The Week Ahead for manual intervention."
         )
         del the_week_ahead_presentation
-        subprocess.run([soffice, the_week_ahead_filename])
+        subprocess.run([soffice, the_week_ahead_filename], check=True)
         the_week_ahead_presentation = pptx.Presentation(the_week_ahead_filename)
         community_time = extract_community_time(
             the_week_ahead_presentation,
@@ -200,7 +199,7 @@ def generate(
         logger.error(
             "Invalid menus! Opening both PPTX menus for manual intervention.", e.args[0]
         )
-        subprocess.run([soffice, menu_en_filename, menu_zh_filename])
+        subprocess.run([soffice, menu_en_filename, menu_zh_filename], check=True)
         menu = extract_pptx_menus(
             menu_en_filename,
             menu_zh_filename,
@@ -222,7 +221,7 @@ def generate(
         "snacks": snacks,
     }
 
-    with open(output_filename, "w") as fd:
+    with open(output_filename, "w", encoding="utf-8") as fd:
         json.dump(final_data, fd, ensure_ascii=False, indent="\t")
     logger.info("Dumped to: %s" % output_filename)
     return output_filename
@@ -375,8 +374,7 @@ def acquire_token(
     if "access_token" in result:
         assert isinstance(result["access_token"], str)
         return result["access_token"]
-    else:
-        raise ValueError("Authentication error in password login")
+    raise ValueError("Authentication error in password login")
 
 
 def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
@@ -414,7 +412,6 @@ def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
     tbll = []
     for r in range(row_count):
         row: list[tuple[str, int, int, str]] = [("", 0, 0, "")] * col_count
-        old_cell_text = ""
         for c in range(col_count):
             cell_text = ""
             cell = tbl.cell(r, c)
@@ -430,7 +427,6 @@ def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
                 cell.span_width,
                 cell_text.strip(),
             )
-            old_cell_text = cell_text
         tbll.append(row)
     return tbll
 
@@ -543,11 +539,7 @@ def extract_aods(prs: pptx.Presentation, aod_page_number: int) -> list[str]:
                     "AOD parsing: The Week Ahead doesn't include all AOD days, or the formatting is borked"
                 )
             return aods
-            break
-    else:
-        raise ValueError(
-            "AOD parsing: The Week Ahead's doesn't even include \"Monday\""
-        )
+    raise ValueError("AOD parsing: The Week Ahead's doesn't even include \"Monday\"")
     # TODO: this is one of those places where Monday is *expected* to be the first day.
     # TODO: revamp this. this is ugly!
 
@@ -560,6 +552,9 @@ def extract_community_time(
     for shape in slide.shapes:
         if not shape.has_table:
             continue
+        break
+    else:
+        raise ValueError("No shapes")
     tbl = shape.table
     row_count = len(tbl.rows)
     col_count = len(tbl.columns)
@@ -686,8 +681,8 @@ def download_menu(
             if payload_filename_encoding is None:
                 assert isinstance(payload_filename_encoded, str)
                 filename = payload_filename_encoded
-            elif type(payload_filename_encoded) is bytes:  # type: ignore
-                filename = payload_filename_encoded.decode(payload_filename_encoding)  # type: ignore
+            elif isinstance(payload_filename_encoded, bytes):
+                filename = payload_filename_encoded.decode(payload_filename_encoding)
             else:
                 raise TypeError("What?")
             if (
@@ -695,18 +690,18 @@ def download_menu(
                 == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
             ):
                 if "EN" in filename:
-                    lang = "en"
                     formatted_filename = menu_en_filename
-                elif "CH" or "CN" in filename:
-                    lang = "zh"
+                elif "CH" in filename or "CN" in filename:
                     formatted_filename = menu_zh_filename
                 else:
                     raise ValueError(
-                        "%s does not contain a language specification string (EN/CH/CN)",
-                        filename,
+                        "%s does not contain a language specification string (EN/CH/CN)"
+                        % filename
                     )
             elif part.get_content_type() == "application/pdf":
                 formatted_filename = menu_pdf_filename
+            else:
+                continue
 
             pb = bytes(payload)
 

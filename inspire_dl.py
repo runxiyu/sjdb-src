@@ -53,7 +53,8 @@ def main() -> None:
     token = config["web_service"]["token"].strip()
 
     response_json = requests.get(
-        api_base + "rs", headers={"Authorization": "Bearer %s" % token},
+        api_base + "rs",
+        headers={"Authorization": "Bearer %s" % token},
         timeout=20,
     ).json()
     assert isinstance(response_json, list)
