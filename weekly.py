@@ -691,7 +691,7 @@ def download_menu(
             ):
                 if "EN" in filename:
                     formatted_filename = menu_en_filename
-                elif "CH" in filename or "CN" in filename:
+                elif "CH" in filename or "CN" in filename or "ZH" in filename:
                     formatted_filename = menu_zh_filename
                 else:
                     raise ValueError(
