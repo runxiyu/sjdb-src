@@ -469,11 +469,10 @@ def parse_meal_tables(
         for s, f in windows:
             thiswindow = []
             for j in range(s, f + 1):
-                if (
-                    tbl[j][i][-1].strip()
-                    and tbl[j][i][-1].strip().lower()
-                    != "condiments selection"  # seriously
-                ):
+                if tbl[j][i][-1].strip() and (
+                    tbl[j][i][-1].strip().lower().replace("，", "")
+                    not in ["condiments selection", "葱香菜榨菜丝老干妈生抽醋"]
+                ):  # seriously
                     thiswindow.append(
                         tbl[j][i][-1]
                         .replace("， ", ", ")
