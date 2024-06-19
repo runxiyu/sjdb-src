@@ -153,13 +153,13 @@ def get_on_this_day_en() -> None:
                 day += 1
 
 
-def get_in_the_news_en() -> None:
+def get_in_the_news_en() -> str:
     url = "https://en.m.wikipedia.org/wiki/Main_Page"
     response = requests.get(url)
     html = response.text
     soup = bs4.BeautifulSoup(html, "html.parser")
 
-    h2_element = soup.find("h2", id="mp-itn-h2")
+    h2_element = soup.find("div", id="mp-itn")
     assert h2_element
     ul_element = h2_element.find_next("ul")
     assert ul_element
@@ -219,12 +219,10 @@ def get_in_the_news_en() -> None:
     )
     result = re.sub(r" <i>\(.*?\)</i>", "", result)
 
-    with open("news_en.html", "w") as file:
-        file.write(result)
-        file.close()
+    return result
 
 
-def get_in_the_news_zh() -> None:
+def get_in_the_news_zh() -> str:
     url = "https://zh.m.wikipedia.org/zh-cn/Wikipedia:%E9%A6%96%E9%A1%B5"
     response = requests.get(url)
     html = response.text
@@ -265,9 +263,7 @@ def get_in_the_news_zh() -> None:
     ).replace("</p><p>", "<br>")
     result = re.sub(r"<small.*?>.*?</small>", "", result)
 
-    with open("news_zh.html", "w") as file:
-        file.write(result)
-        file.close()
+    return result
 
 
 def main() -> None:
