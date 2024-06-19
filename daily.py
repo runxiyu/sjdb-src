@@ -27,6 +27,7 @@ import zoneinfo
 import os
 import base64
 import mimetypes
+import typing
 
 logger = logging.getLogger(__name__)
 
@@ -200,6 +201,24 @@ def generate(
         inspiration_text = None
         inspiration_image_fn = None
 
+    on_this_day_html_en: typing.Optional[str]
+    try:
+        with open("otd_en-%s.html" % datetime_target.strftime("%m-%d"), "r") as fd:
+            on_this_day_html_en = fd.read()
+    except FileNotFoundError:
+        on_this_day_html_en = None
+        logger.warning("On This Day English not found")
+    on_this_day_html_zh: typing.Optional[str]
+    try:
+        with open("otd_zh-%s.html" % datetime_target.strftime("%m-%d"), "r") as fd:
+            on_this_day_html_zh = fd.read()
+    except FileNotFoundError:
+        on_this_day_html_zh = None
+        logger.warning("On This Day Chinese not found")
+
+    in_the_news_html_en: typing.Optional[str] = None
+    in_the_news_html_zh: typing.Optional[str] = None
+
     data = {
         "stddate": datetime_target.strftime("%Y-%m-%d"),
         "community_time": week_data["community_time"][days_since_beginning:],
@@ -223,6 +242,10 @@ def generate(
         "inspiration_text": inspiration_text,
         "inspiration_image_data": inspiration_image_data,
         "inspiration_image_mime": inspiration_image_mime,
+        "on_this_day_html_en": on_this_day_html_en,
+        "on_this_day_html_zh": on_this_day_html_zh,
+        "in_the_news_html_en": in_the_news_html_en,
+        "in_the_news_html_zh": in_the_news_html_zh,
     }
     with open(
         "day-%s.json" % datetime_target.strftime("%Y%m%d"), "w", encoding="utf-8"
