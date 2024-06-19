@@ -20,11 +20,17 @@
 
 from __future__ import annotations
 import re
+import os
 import copy
 import datetime
+import logging
+import argparse
+import configparser
 
 import requests
 import bs4
+
+logger = logging.getLogger(__name__)
 
 
 def get_on_this_day_zh() -> None:
@@ -73,7 +79,7 @@ def get_on_this_day_zh() -> None:
             )
             result = re.sub(r"<small>.*?图.*?</small>", "", result)
 
-            with open(formatted_time_yearless + ".html", "w") as file:
+            with open("otd_zh-" + formatted_time_yearless + ".html", "w") as file:
                 file.write(result)
                 file.close()
                 day += 1
@@ -141,7 +147,7 @@ def get_on_this_day_en() -> None:
             )
             result = re.sub(r" <i>.*?icture.*?</i>", "", result)
 
-            with open(formatted_time_yearless + ".html", "w") as file:
+            with open("otd_en-" + formatted_time_yearless + ".html", "w") as file:
                 file.write(result)
                 file.close()
                 day += 1
@@ -213,21 +219,9 @@ def get_in_the_news_en() -> None:
     )
     result = re.sub(r" <i>\(.*?\)</i>", "", result)
 
-    with open("latest.html", "r") as file:
-        existing_content = file.read()
-
-    if existing_content != result:
-        datetime_time = datetime.datetime.today() + datetime.timedelta(days=-1)
-        formatted_time = datetime_time.strftime("%Y-%m-%d")
-        new_filename = formatted_time + ".html"
-
-        with open(new_filename, "w") as file:
-            file.write(existing_content)
-            file.close()
-
-        with open("latest.html", "w") as file:
-            file.write(result)
-            file.close()
+    with open("news_en.html", "w") as file:
+        file.write(result)
+        file.close()
 
 
 def get_in_the_news_zh() -> None:
@@ -271,18 +265,37 @@ def get_in_the_news_zh() -> None:
     ).replace("</p><p>", "<br>")
     result = re.sub(r"<small.*?>.*?</small>", "", result)
 
-    with open("latest.html", "r") as file:
-        existing_content = file.read()
+    with open("news_zh.html", "w") as file:
+        file.write(result)
+        file.close()
 
-    if existing_content != result:
-        datetime_time = datetime.datetime.today() + datetime.timedelta(days=-1)
-        formatted_time = datetime_time.strftime("%Y-%m-%d")
-        new_filename = formatted_time + ".html"
 
-        with open(new_filename, "w") as file:
-            file.write(existing_content)
-            file.close()
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Legacy Wikipedia script for the Daily Bulletin"
+    )
+    parser.add_argument(
+        "--config", default="config.ini", help="path to the configuration file"
+    )
+    args = parser.parse_args()
 
-        with open("latest.html", "w") as file:
-            file.write(result)
-            file.close()
+    config = configparser.ConfigParser()
+    config.read(args.config)
+
+    build_path = config["general"]["build_path"]
+    os.chdir(build_path)
+
+    logging.basicConfig(level=logging.DEBUG)
+    logger.warning("Running main() only grabs On This Day")
+    logger.info("get_on_this_day_en()")
+    get_on_this_day_en()
+    logger.info("get_on_this_day_zh()")
+    get_on_this_day_zh()
+    # logger.info("get_in_the_news_en()")
+    # get_in_the_news_en()
+    # logger.info("get_in_the_news_zh()")
+    # get_in_the_news_zh()
+
+
+if __name__ == "__main__":
+    main()
