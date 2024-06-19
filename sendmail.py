@@ -18,14 +18,16 @@
 #
 
 from __future__ import annotations
-import os
+from configparser import ConfigParser
+from typing import Optional
+from pprint import pprint
 import datetime
 import zoneinfo
 import argparse
-from configparser import ConfigParser
-from typing import Optional
-import msal  # type: ignore
+import os
+
 import requests
+import msal  # type: ignore
 
 
 def acquire_token(app: msal.PublicClientApplication, config: ConfigParser) -> str:
@@ -51,7 +53,8 @@ def sendmail(
     when: Optional[datetime.datetime] = None,
     content_type: str = "HTML",
     importance: str = "Normal",
-) -> None:
+    reply_to: Optional[str] = None,
+) -> str:
     data = {
         "subject": subject,
         "importance": importance,
@@ -70,33 +73,64 @@ def sendmail(
             {"id": "SystemTime 0x3FEF", "value": isoval}
         ]
 
-    response = requests.post(
-        "https://graph.microsoft.com/v1.0/me/messages",
-        json=data,
-        headers={"Authorization": "Bearer " + token},
-        timeout=20,
-    ).json()
+    if not reply_to:
+        response = requests.post(
+            "https://graph.microsoft.com/v1.0/me/messages",
+            json=data,
+            headers={
+                "Authorization": "Bearer %s" % token,
+                "Prefer": 'IdType="ImmutableId"',
+            },
+            timeout=20,
+        ).json()
+    else:
+        response = requests.post(
+            "https://graph.microsoft.com/v1.0/me/messages/%s/createReply" % reply_to,
+            json=data,
+            headers={
+                "Authorization": "Bearer %s" % token,
+                "Prefer": 'IdType="ImmutableId"',
+            },
+            timeout=20,
+        ).json()
+
+    try:
+        msgid = response["id"]
+    except KeyError:
+        pprint(response)
+        raise ValueError("Unable to add email to drafts")
+
+    assert isinstance(msgid, str)
+
     response2 = requests.post(
-        "https://graph.microsoft.com/v1.0/me/messages/%s/send" % response["id"],
+        "https://graph.microsoft.com/v1.0/me/messages/%s/send" % msgid,
         headers={"Authorization": "Bearer " + token},
         timeout=20,
     )
+
     if response2.status_code != 202:
-        print(response2.content)
+        pprint(response2.content.decode("utf-8", "replace"))
         raise ValueError(
             "Graph response to messages/%s/send returned something other than 202 Accepted"
             % response["id"],
-            response2,
         )
-    # TODO: Handle more errors
+
+    return msgid
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Daily Bulletin Sender")
     parser.add_argument(
+        "-d",
         "--date",
         default=None,
         help="the date of the bulletin to send, in local time, in YYYY-MM-DD; defaults to tomorrow",
+    )
+    parser.add_argument(
+        "-r",
+        "--reply",
+        action="store_true",
+        help="Reply to the previous bulletin when sending (BROKEN)",
     )
     parser.add_argument(
         "--config", default="config.ini", help="path to the configuration file"
@@ -125,40 +159,94 @@ def main() -> None:
     )
     token = acquire_token(app, config)
 
-    sendmail(
-        token,
-        subject=config["sendmail"]["subject_format"]
-        % date.strftime(config["sendmail"]["subject_date_format"]),
-        body=html,
-        to=config["sendmail"]["to_1"].split(" "),
-        cc=config["sendmail"]["cc_1"].split(" "),
-        bcc=config["sendmail"]["bcc_1"].split(" "),
-        when=date.replace(
-            hour=int(config["sendmail"]["hour"]),
-            minute=int(config["sendmail"]["minute"]),
-            second=0,
-            microsecond=0,
-        ),
-        content_type="HTML",
-        importance="Normal",
-    )
-    sendmail(
-        token,
-        subject=config["sendmail"]["subject_format"]
-        % date.strftime(config["sendmail"]["subject_date_format"]),
-        body=html,
-        to=config["sendmail"]["to_2"].split(" "),
-        cc=config["sendmail"]["cc_2"].split(" "),
-        bcc=config["sendmail"]["bcc_2"].split(" "),
-        when=date.replace(
-            hour=int(config["sendmail"]["hour"]),
-            minute=int(config["sendmail"]["minute"]),
-            second=0,
-            microsecond=0,
-        ),
-        content_type="HTML",
-        importance="Normal",
-    )
+    if not args.reply:
+        a = sendmail(
+            token,
+            subject=config["sendmail"]["subject_format"]
+            % date.strftime(config["sendmail"]["subject_date_format"]),
+            body=html,
+            to=config["sendmail"]["to_1"].split(" "),
+            cc=config["sendmail"]["cc_1"].split(" "),
+            bcc=config["sendmail"]["bcc_1"].split(" "),
+            when=date.replace(
+                hour=int(config["sendmail"]["hour"]),
+                minute=int(config["sendmail"]["minute"]),
+                second=0,
+                microsecond=0,
+            ),
+            content_type="HTML",
+            importance="Normal",
+        )
+        assert a
+        with open("last-a.txt", "w") as fd:
+            fd.write(a)
+        b = sendmail(
+            token,
+            subject=config["sendmail"]["subject_format"]
+            % date.strftime(config["sendmail"]["subject_date_format"]),
+            body=html,
+            to=config["sendmail"]["to_2"].split(" "),
+            cc=config["sendmail"]["cc_2"].split(" "),
+            bcc=config["sendmail"]["bcc_2"].split(" "),
+            when=date.replace(
+                hour=int(config["sendmail"]["hour"]),
+                minute=int(config["sendmail"]["minute"]),
+                second=0,
+                microsecond=0,
+            ),
+            content_type="HTML",
+            importance="Normal",
+        )
+        assert b
+        with open("last-b.txt", "w") as fd:
+            fd.write(b)
+    else:
+        with open("last-a.txt", "r") as fd:
+            last_a = fd.read().strip()
+        a = sendmail(
+            token,
+            subject=config["sendmail"]["subject_format"]
+            % date.strftime(config["sendmail"]["subject_date_format"]),
+            body=html,
+            to=config["sendmail"]["to_1"].split(" "),
+            cc=config["sendmail"]["cc_1"].split(" "),
+            bcc=config["sendmail"]["bcc_1"].split(" "),
+            when=date.replace(
+                hour=int(config["sendmail"]["hour"]),
+                minute=int(config["sendmail"]["minute"]),
+                second=0,
+                microsecond=0,
+            ),
+            content_type="HTML",
+            importance="Normal",
+            reply_to=last_a,
+        )
+        assert a
+        with open("last-a.txt", "w") as fd:
+            fd.write(a)
+        with open("last-b.txt", "r") as fd:
+            last_b = fd.read().strip()
+        b = sendmail(
+            token,
+            subject=config["sendmail"]["subject_format"]
+            % date.strftime(config["sendmail"]["subject_date_format"]),
+            body=html,
+            to=config["sendmail"]["to_2"].split(" "),
+            cc=config["sendmail"]["cc_2"].split(" "),
+            bcc=config["sendmail"]["bcc_2"].split(" "),
+            when=date.replace(
+                hour=int(config["sendmail"]["hour"]),
+                minute=int(config["sendmail"]["minute"]),
+                second=0,
+                microsecond=0,
+            ),
+            content_type="HTML",
+            importance="Normal",
+            reply_to=last_b,
+        )
+        assert b
+        with open("last-b.txt", "w") as fd:
+            fd.write(b)
 
 
 if __name__ == "__main__":
