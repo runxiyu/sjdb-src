@@ -18,13 +18,16 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-import requests
+from __future__ import annotations
 import re
+import copy
 import datetime
-from bs4 import BeautifulSoup
+
+import requests
+import bs4
 
 
-def get_on_this_day_zh():
+def get_on_this_day_zh() -> None:
     months = list(map(lambda x: str(x) + "月", range(1, 13)))
 
     for index in range(12):
@@ -35,7 +38,7 @@ def get_on_this_day_zh():
         url = "https://zh.m.wikipedia.org/zh-cn/Wikipedia:历史上的今天/" + month
         response = requests.get(url)
         html = response.text
-        soup = BeautifulSoup(html, "html.parser")
+        soup = bs4.BeautifulSoup(html, "html.parser")
         div_elements = soup.find_all("div", class_="selected-anniversary")
 
         for div_element in div_elements:
@@ -76,7 +79,7 @@ def get_on_this_day_zh():
                 day += 1
 
 
-def get_on_this_day_en():
+def get_on_this_day_en() -> None:
     months = [
         "January",
         "February",
@@ -101,7 +104,7 @@ def get_on_this_day_en():
         )
         response = requests.get(url)
         html = response.text
-        soup = BeautifulSoup(html, "html.parser")
+        soup = bs4.BeautifulSoup(html, "html.parser")
         p_elements = soup.find_all("p")
 
         for p_element in p_elements:
@@ -121,7 +124,7 @@ def get_on_this_day_en():
             ul_element = div_element.find_next_sibling("ul")
             ul_element_2 = ul_element.find_next("ul")
             p_element_2 = soup.new_tag("p")
-            li_contents = [li for li in ul_element_2.find_all("li")]
+            li_contents = list(ul_element_2.find_all("li"))
 
             for li in li_contents:
                 p_element_2.append(li)
@@ -144,22 +147,29 @@ def get_on_this_day_en():
                 day += 1
 
 
-def get_in_the_news_en():
+def get_in_the_news_en() -> None:
     url = "https://en.m.wikipedia.org/wiki/Main_Page"
     response = requests.get(url)
     html = response.text
-    soup = BeautifulSoup(html, "html.parser")
+    soup = bs4.BeautifulSoup(html, "html.parser")
 
     h2_element = soup.find("h2", id="mp-itn-h2")
+    assert h2_element
     ul_element = h2_element.find_next("ul")
+    assert ul_element
     ul_element_2 = ul_element.find_next("ul")
+    assert ul_element_2
     div_element = ul_element_2.find_next("div")
+    assert div_element
     ul_element_3 = div_element.find_next("ul")
+    assert ul_element_3
 
     p_element_2 = soup.new_tag("p")
     p_element_3 = soup.new_tag("p")
-    li_contents_2 = [li for li in ul_element_2.find_all("li")]
-    li_contents_3 = [li for li in ul_element_3.find_all("li")]
+    assert isinstance(ul_element_2, bs4.Tag)
+    assert isinstance(ul_element_3, bs4.Tag)
+    li_contents_2 = list(ul_element_2.find_all("li"))
+    li_contents_3 = list(ul_element_3.find_all("li"))
     skip = False
     for li in li_contents_2:
         if skip:
@@ -220,18 +230,23 @@ def get_in_the_news_en():
             file.close()
 
 
-def get_in_the_news_zh():
+def get_in_the_news_zh() -> None:
     url = "https://zh.m.wikipedia.org/zh-cn/Wikipedia:%E9%A6%96%E9%A1%B5"
     response = requests.get(url)
     html = response.text
-    soup = BeautifulSoup(html, "html.parser")
+    soup = bs4.BeautifulSoup(html, "html.parser")
 
     div_element = soup.find("div", id="column-itn")
+    assert div_element
     ul_element = div_element.find("ul")
+    assert isinstance(ul_element, bs4.Tag)
     ul_element_2 = ul_element.find_next("ul")
+    assert isinstance(ul_element_2, bs4.Tag)
     ul_element_3 = ul_element_2.find_next("ul")
+    assert isinstance(ul_element_3, bs4.Tag)
     span_element_2 = ul_element_2.find("span", class_="hlist inline")
     span_element_3 = ul_element_3.find("span", class_="hlist inline")
+    assert span_element_2 and span_element_3
     p_element_2 = soup.new_tag("p")
     p_element_3 = soup.new_tag("p")
     p_element_2.append(span_element_2)
