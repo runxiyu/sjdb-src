@@ -24,7 +24,7 @@
 	td, th { border: 1px solid rgb(150, 150, 150); padding: 0.4rem; }
 	table#community_time td { text-align: center;}
 	td { min-width: 4.8rem; vertical-align: top; }
-	table#menu { min-width: 50em; } /* I think the male clients will just resize the table */
+	table#menu { zoom: 80%; min-width: 50em; } /* I think the male clients will just resize the table */
 	table#menu ul { padding-left: 1.2em; }
 	th { color: black; background-color: rgb(240, 240, 240); }
 	th, .wtitle { font-weight: bold; }
@@ -196,6 +196,7 @@
 				</td>
 				{% endfor %}
 				<td>
+					{% if today_breakfast[2] %}
 					<ul>
 						{% for m in today_breakfast[2] %}
 						<li>
@@ -203,6 +204,8 @@
 						</li>
 						{% endfor %}
 					</ul>
+					{% endif %}
+					{% if today_breakfast[3] %}
 					<ul>
 						{% for m in today_breakfast[3] %}
 						<li>
@@ -210,6 +213,7 @@
 						</li>
 						{% endfor %}
 					</ul>
+					{% endif %}
 				</td>
 				<td>
 					<ul>
@@ -247,6 +251,7 @@
 				</td>
 				{% endfor %}
 				<td>
+					{% if today_lunch[2] %}
 					<ul>
 						{% for m in today_lunch[2] %}
 						<li>
@@ -254,6 +259,8 @@
 						</li>
 						{% endfor %}
 					</ul>
+					{% endif %}
+					{% if today_lunch[3] %}
 					<ul>
 						{% for m in today_lunch[3] %}
 						<li>
@@ -261,6 +268,7 @@
 						</li>
 						{% endfor %}
 					</ul>
+					{% endif %}
 				</td>
 				<td>
 					<ul>
@@ -313,6 +321,7 @@
 				</td>
 				{% endfor %}
 				<td>
+					{% if today_dinner[2] %}
 					<ul>
 						{% for m in today_dinner[2] %}
 						<li>
@@ -320,6 +329,8 @@
 						</li>
 						{% endfor %}
 					</ul>
+					{% endif %}
+					{% if today_dinner[3] %}
 					<ul>
 						{% for m in today_dinner[3] %}
 						<li>
@@ -327,6 +338,7 @@
 						</li>
 						{% endfor %}
 					</ul>
+					{% endif %}
 				</td>
 				<td>
 					<ul>
@@ -386,6 +398,7 @@
 				</td>
 				{% endfor %}
 				<td>
+					{% if next_breakfast[2] %}
 					<ul>
 						{% for m in next_breakfast[2] %}
 						<li>
@@ -393,6 +406,8 @@
 						</li>
 						{% endfor %}
 					</ul>
+					{% endif %}
+					{% if next_breakfast[3] %}
 					<ul>
 						{% for m in next_breakfast[3] %}
 						<li>
@@ -400,6 +415,7 @@
 						</li>
 						{% endfor %}
 					</ul>
+					{% endif %}
 				</td>
 				<td>
 					<ul>
@@ -421,9 +437,6 @@
 	{% endif %}
 
 	<h2>Daily Inspiration 每日灵感</h2>
-	<p>
-	We need inspirations! Please feel free to <a href="https://sj.ykps.net/sjdb/submit">submit one</a>.
-	</p>
 	{% if inspiration_type %}
 		{% if inspiration_type == "text" %}
 		<pre>{{ inspiration_text }}</pre>
@@ -443,16 +456,29 @@
 	{% else %}
 	<p>
 	Unfortunately, there is no inspiration today.
+	Please feel free to <a href="https://sj.ykps.net/sjdb/submit">submit one</a>.
 	</p>
 	{% endif %}
 
-	{# 
+	{% if on_this_day_html_en or on_this_day_html_zh %}
 	<h2>On This Day 以史为鉴</h2>
-	<!-- UNIMPLEMENTED -->
+	{% endif %}
+	{% if on_this_day_html_en %}
+	{{on_this_day_html_en | safe}}
+	{% endif %}
+	{% if on_this_day_html_zh %}
+	{{on_this_day_html_zh | safe}}
+	{% endif %}
 
+	{% if in_the_news_html_en or in_the_news_html_zh %}
 	<h2>In the News 时事要闻</h2>
-	<!-- UNIMPLEMENTED -->
-	#}
+	{% endif %}
+	{% if in_the_news_html_en %}
+	{{in_the_news_html_en | safe}}
+	{% endif %}
+	{% if in_the_news_html_zh %}
+	{{in_the_news_html_zh | safe}}
+	{% endif %}
 
 	<h2>Regular Notices 常规通知</h2>
 	<ul>
