@@ -29,6 +29,8 @@ import base64
 import mimetypes
 import typing
 
+import legacy_wikipedia
+
 logger = logging.getLogger(__name__)
 
 DAYNAMES = [
@@ -216,8 +218,8 @@ def generate(
         on_this_day_html_zh = None
         logger.warning("On This Day Chinese not found")
 
-    in_the_news_html_en: typing.Optional[str] = None
-    in_the_news_html_zh: typing.Optional[str] = None
+    # in_the_news_html_en: typing.Optional[str] = None
+    # in_the_news_html_zh: typing.Optional[str] = None
 
     data = {
         "stddate": datetime_target.strftime("%Y-%m-%d"),
@@ -244,8 +246,8 @@ def generate(
         "inspiration_image_mime": inspiration_image_mime,
         "on_this_day_html_en": on_this_day_html_en,
         "on_this_day_html_zh": on_this_day_html_zh,
-        "in_the_news_html_en": in_the_news_html_en,
-        "in_the_news_html_zh": in_the_news_html_zh,
+        "in_the_news_html_en": legacy_wikipedia.get_in_the_news_en(),
+        "in_the_news_html_zh": legacy_wikipedia.get_in_the_news_zh(),
     }
     with open(
         "day-%s.json" % datetime_target.strftime("%Y%m%d"), "w", encoding="utf-8"
