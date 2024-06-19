@@ -1,8 +1,18 @@
-secrets.json
-*.pptx
+# Python stuff
 __pycache__
 .mypy_cache
-config.ini
 venv/
-build/
+
+# Configuration
+config.ini
+secrets.json
+
+# Editor and macOS
+*~
+\#*#
 .DS_Store
+
+# PyInstaller
+build/
+dist/
+*.spec
