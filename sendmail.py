@@ -63,7 +63,7 @@ def sendmail(
 
     if when is not None:
         if when.tzinfo is None:
-            raise ValueError("Naive datetimes are no longer supported")
+            raise TypeError("Naive datetimes are no longer supported")
         utcwhen = when.astimezone(datetime.timezone.utc)
         isoval = utcwhen.isoformat(timespec="seconds").replace("+00:00", "Z")
         data["singleValueExtendedProperties"] = [
