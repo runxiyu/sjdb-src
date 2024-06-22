@@ -167,7 +167,11 @@ def main() -> None:
             body=html,
             to=config["sendmail"]["to_1"].split(" "),
             cc=config["sendmail"]["cc_1"].split(" "),
-            bcc=config["sendmail"]["bcc_1"].split(" "),
+            bcc=[
+                w.strip()
+                for w in open(config["sendmail"]["bcc_1_file"], "r").readlines()
+                if w.strip()
+            ],
             when=date.replace(
                 hour=int(config["sendmail"]["hour"]),
                 minute=int(config["sendmail"]["minute"]),
@@ -187,7 +191,11 @@ def main() -> None:
             body=html,
             to=config["sendmail"]["to_2"].split(" "),
             cc=config["sendmail"]["cc_2"].split(" "),
-            bcc=config["sendmail"]["bcc_2"].split(" "),
+            bcc=[
+                w.strip()
+                for w in open(config["sendmail"]["bcc_2_file"], "r").readlines()
+                if w.strip()
+            ],
             when=date.replace(
                 hour=int(config["sendmail"]["hour"]),
                 minute=int(config["sendmail"]["minute"]),

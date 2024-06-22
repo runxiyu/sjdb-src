@@ -5,7 +5,7 @@ import json
 import sys
 
 for fn in sys.argv[1:]:
-    with open(fn, "r") as fd:
+    with open(fn, "r+") as fd:
         jq = json.load(fd)
         jq["approved"] = True
-        json.dump(fd, jq, indent="\t")
+        json.dump(jq, fd, indent="\t")
