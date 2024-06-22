@@ -42,7 +42,7 @@ def get_on_this_day_zh() -> None:
         day = 1
 
         url = "https://zh.m.wikipedia.org/zh-cn/Wikipedia:历史上的今天/" + month
-        response = requests.get(url)
+        response = requests.get(url, timeout=15)
         html = response.text
         soup = bs4.BeautifulSoup(html, "html.parser")
         div_elements = soup.find_all("div", class_="selected-anniversary")
@@ -108,7 +108,7 @@ def get_on_this_day_en() -> None:
         url = (
             "https://en.m.wikipedia.org/wiki/Wikipedia:Selected_anniversaries/" + month
         )
-        response = requests.get(url)
+        response = requests.get(url, timeout=15)
         html = response.text
         soup = bs4.BeautifulSoup(html, "html.parser")
         p_elements = soup.find_all("p")
@@ -155,7 +155,7 @@ def get_on_this_day_en() -> None:
 
 def get_in_the_news_en() -> str:
     url = "https://en.m.wikipedia.org/wiki/Main_Page"
-    response = requests.get(url)
+    response = requests.get(url, timeout=15)
     html = response.text
     soup = bs4.BeautifulSoup(html, "html.parser")
 
@@ -224,7 +224,7 @@ def get_in_the_news_en() -> str:
 
 def get_in_the_news_zh() -> str:
     url = "https://zh.m.wikipedia.org/zh-cn/Wikipedia:%E9%A6%96%E9%A1%B5"
-    response = requests.get(url)
+    response = requests.get(url, timeout=15)
     html = response.text
     soup = bs4.BeautifulSoup(html, "html.parser")
 
