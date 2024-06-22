@@ -463,7 +463,8 @@ def parse_meal_tables(
 
     daysmenus: list[list[list[str]]] = [[], [], [], [], []]
 
-    assert len(tbl[0]) == 6
+    if len(tbl[0]) != 6:
+        logger.warning(100 * "@" + "Fewer than 5 days of menus, time to audit?")
 
     for i in range(1, len(tbl[0])):
         for s, f in windows:
