@@ -2,6 +2,12 @@
 
 [Daily Bulletin Home Page](https://sj.ykps.net/sjdb/)
 
+**Please note that any code presented herein, or any information present on the
+Daily Buletin, does not represent the school in its official capacity.
+Information provided herein are provided on a best-effort basis by students who
+are otherwise unaffiliated with the school administration (and also have a very
+busy academic life).**
+
 Daily Bulletins are bulletin boards for students and staff at the
 Songjiang campus of [YK Pao School](https://ykpaoschool.cn), which are
 delivered by email every school day. They contain information such as
@@ -9,8 +15,7 @@ itineraries notices, Daily Inspirations, exam schedules (if there are
 exam sessions ongoing), the daily menu, etc.
 
 This repository contains the source code of the modern Daily Bulletin's
-build system. **It is a work in progress and isn't in production use
-yet**.
+build system. It does not contain the actual Daily Bulletins.
 
 ## Installation
 
