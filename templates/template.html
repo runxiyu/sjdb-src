@@ -40,6 +40,7 @@
 	img.embed { width: 40%; float: right; margin-left: 10px; margin-bottom: 10px; }
 	hr { border: 1px solid rgb(150, 150, 150); }
 	footer { padding-top: 1rem; text-align: center; }
+	.wtitle + ul { margin-top: 0rem; }
 </style>
 </head>
 <body dir="auto">
@@ -47,15 +48,21 @@
 <header>
 	<h1>Daily Bulletin 每日公告</h1>
 	<p><time datetime="{{stddate}}">{{stddate}}</time>, {{weekday_english}}, Day {{day_of_cycle}}</p>
+	<p style="font-weight: bold; color: #AA0000;">
+	Internal beta testing edition
+	</p>
 </header>
 <article>
 	<p>
-	Happy {{weekday_english}}! Thank you for supporting the Daily Bulletin. Please note that this is supplementary to <a href="{{the_week_ahead_url}}">The Week Ahead</a> and is not the canonical source of information, and the Daily Bulletin staff accept no liability for the accuracy or validity. Please fill in the respective forms to <a href="https://sj.ykps.net/sjdb/submit">share inspirations</a> or <a href="https://sj.ykps.net/sjdb/unsub">unsubscribe</a>.
-	<br />
-	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是<a href="{{the_week_ahead_url}}">每周展望</a>的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="https://sj.ykps.net/sjdb/submit">分享灵感</a>或<a href="https://sj.ykps.net/sjdb/unsub">退订</a>。
+	The Daily Bulletin project has returned. Last year, it was maintained by <a href="https://albertttan.github.io">Albert Tan</a>, who departed the school. The bulletin is now maintained by <a href="https://runxiyu.org">Runxi Yu</a> with the <a href="https://git.runxiyu.org/ykps/sjdb-src.git/about">automated build system</a> (<a href="https://github.com/runxiyu/sjdb-src">GitHub</a>).
 	</p>
 	<p>
-	Note: The Daily Bulletin project used to be maintained by Albert Tan, who left the school in June 2024. It is currently maintained by <a href="mailto:s22537@stu.ykpaoschool.cn">Runxi Yu</a> with the experimental <a href="https://git.runxiyu.org/ykps/current/sjdb-src.git">Songjiang Daily Bulletin Build System</a> which aims to further reduce the amount of manual labor in producing the bulletins. Some features are incomplete, and others (such as menu generation) don't look visually appealing. Contributions are welcome!
+	Note: This version of the Daily Bulletin is still in beta. Importantly, this version <em>has not been approved officially</em> by the school administration, and is unfit for wider distribution. Only a number of people who the maintainer is sufficiently familiar with are receiving the bulletins currently.
+	</p>
+	<p>
+	Happy {{weekday_english}}! Thank you for supporting the Daily Bulletin. Please note that this is supplementary to <a href="{{the_week_ahead_url}}">The Week Ahead</a> and is not an official source of information, and the Daily Bulletin staff accept no liability for the accuracy or validity. Please fill in the respective forms to <a href="https://sj.ykps.net/sjdb/submit">share inspirations</a> or <a href="https://sj.ykps.net/sjdb/unsub">unsubscribe</a>.
+	<br />
+	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是<a href="{{the_week_ahead_url}}">每周展望</a>的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="https://sj.ykps.net/sjdb/submit">分享灵感</a>或<a href="https://sj.ykps.net/sjdb/unsub">退订</a>。
 	</p>
 	{% if community_time %}
 	<h2>Community Time 午休时间</h2>
@@ -119,7 +126,7 @@
 				</tr>
 			{% endfor %}
 		</tbody>
-		{% else %}
+		{% else %} {# Y12s have left the school #}
 		<colgroup><col style="width: 5%"><col style="width: 31.66666667%"><col style="width: 31.66666667%"><col style="width: 31.66666667%"></colgroup>
 		<thead>
 			<tr>
@@ -200,6 +207,7 @@
 				{% endfor %}
 				<td>
 					{% if today_breakfast[2] %}
+					<span class="wtitle">Revolution</span>
 					<ul>
 						{% for m in today_breakfast[2] %}
 						<li>
@@ -209,6 +217,7 @@
 					</ul>
 					{% endif %}
 					{% if today_breakfast[3] %}
+					<span class="wtitle">Piccola Italia</span>
 					<ul>
 						{% for m in today_breakfast[3] %}
 						<li>
@@ -219,23 +228,16 @@
 					{% endif %}
 				</td>
 				<td>
+					{% if snack_morning %}
+					<span class="wtitle">10:05 Snack</span>
 					<ul>
 						<li>
-							<span class="wtitle">Cafeteria Extra:</span><br />
-							{{ today_breakfast[4][0]["en"] }}<br />{{ today_breakfast[4][0]["zh"] }}
-							{% for m in today_breakfast[4][1:] %}
-							<br />{{m["en"]}}<br />{{m["zh"]}}
-							{% endfor %}
-						</li>
-						{% if snack_morning %}
-						<li>
-							<span class="wtitle">10:05 Snack:</span><br />
 							{{snack_morning["en"]}}
 							<br />
 							{{snack_morning["zh"]}}
 						</li>
-						{% endif %}
 					</ul>
+					{% endif %}
 				</td>
 				</tr>
 			<tr class="today">
@@ -255,6 +257,7 @@
 				{% endfor %}
 				<td>
 					{% if today_lunch[2] %}
+					<span class="wtitle">Revolution</span>
 					<ul>
 						{% for m in today_lunch[2] %}
 						<li>
@@ -264,6 +267,7 @@
 					</ul>
 					{% endif %}
 					{% if today_lunch[3] %}
+					<span class="wtitle">Piccola Italia</span>
 					<ul>
 						{% for m in today_lunch[3] %}
 						<li>
@@ -274,31 +278,28 @@
 					{% endif %}
 				</td>
 				<td>
+					<span class="wtitle">Vegetarian</span>
 					<ul>
 						<li>
-							<span class="wtitle">Vegetarian:</span><br />
 							{{ today_lunch[4][0]["en"] }}<br />{{ today_lunch[4][0]["zh"] }}
 							{% for m in today_lunch[4][1:] %}
 							<br />{{m["en"]}}<br />{{m["zh"]}}
 							{% endfor %}
 						</li>
+					</ul>
+					<span class="wtitle">Soup</span>
+					<ul>
 						<li>
-							<span class="wtitle">Soup:</span><br />
 							{{ today_lunch[5][0]["en"] }}<br />{{ today_lunch[5][0]["zh"] }}
 							{% for m in today_lunch[5][1:] %}
 							<br />{{m["en"]}}<br />{{m["zh"]}}
 							{% endfor %}
 						</li>
+					</ul>
+					{% if snack_afternoon %}
+					<span class="wtitle">15:45 Snack</span>
+					<ul>
 						<li>
-							<span class="wtitle">Cafeteria Extra:</span><br />
-							{{ today_lunch[6][0]["en"] }}<br />{{ today_lunch[6][0]["zh"] }}
-							{% for m in today_lunch[6][1:] %}
-							<br />{{m["en"]}}<br />{{m["zh"]}}
-							{% endfor %}
-						</li>
-						{% if snack_afternoon %}
-						<li>
-							<span class="wtitle">15:45 Snack:</span><br />
 							{{snack_afternoon["en"]}}
 							<br />
 							{{snack_afternoon["zh"]}}
@@ -325,6 +326,7 @@
 				{% endfor %}
 				<td>
 					{% if today_dinner[2] %}
+					<span class="wtitle">Revolution</span>
 					<ul>
 						{% for m in today_dinner[2] %}
 						<li>
@@ -334,6 +336,7 @@
 					</ul>
 					{% endif %}
 					{% if today_dinner[3] %}
+					<span class="wtitle">Piccola Italia</span>
 					<ul>
 						{% for m in today_dinner[3] %}
 						<li>
@@ -344,43 +347,28 @@
 					{% endif %}
 				</td>
 				<td>
+					{% if today_dinner[4] %}
+					<span class="wtitle">Vegetarian</span>
 					<ul>
-						{% if today_dinner[4] %}
 						<li>
-							<span class="wtitle">Vegetarian:</span><br />
 							{{ today_dinner[4][0]["en"] }}<br />{{ today_dinner[4][0]["zh"] }}
 							{% for m in today_dinner[4][1:] %}
 							<br />{{m["en"]}}<br />{{m["zh"]}}
 							{% endfor %}
 						</li>
-						{% endif %}
-						{% if today_dinner[5] %}
+					</ul>
+					{% endif %}
+					{% if today_dinner[5] %}
+					<span class="wtitle">Soup</span>
+					<ul>
 						<li>
-							<span class="wtitle">Soup:</span><br />
 							{{ today_dinner[5][0]["en"] }}<br />{{ today_dinner[5][0]["zh"] }}
 							{% for m in today_dinner[5][1:] %}
 							<br />{{m["en"]}}<br />{{m["zh"]}}
 							{% endfor %}
 						</li>
-						{% endif %}
-						{% if today_dinner[6] %}
-						<li>
-							<span class="wtitle">Cafeteria Extra:</span><br />
-							{{ today_dinner[6][0]["en"] }}<br />{{ today_dinner[6][0]["zh"] }}
-							{% for m in today_dinner[6][1:] %}
-							<br />{{m["en"]}}<br />{{m["zh"]}}
-							{% endfor %}
-						</li>
-						{% endif %}
-						{% if snack_evening %}
-						<li>
-							<span class="wtitle">Evening Snack:</span><br />
-							{{snack_evening["en"]}}
-							<br />
-							{{snack_evening["zh"]}}
-						</li>
-						{% endif %}
 					</ul>
+					{% endif %}
 				</td>
 			</tr>
 			{% endif %}
@@ -402,6 +390,7 @@
 				{% endfor %}
 				<td>
 					{% if next_breakfast[2] %}
+					<span class="wtitle">Revolution</span>
 					<ul>
 						{% for m in next_breakfast[2] %}
 						<li>
@@ -411,6 +400,7 @@
 					</ul>
 					{% endif %}
 					{% if next_breakfast[3] %}
+					<span class="wtitle">Piccola Italia</span>
 					<ul>
 						{% for m in next_breakfast[3] %}
 						<li>
@@ -421,15 +411,6 @@
 					{% endif %}
 				</td>
 				<td>
-					<ul>
-						<li>
-							<span class="wtitle">Cafeteria Extra:</span><br />
-							{{ next_breakfast[4][0]["en"] }}<br />{{ next_breakfast[4][0]["zh"] }}
-							{% for m in next_breakfast[4][1:] %}
-							<br />{{m["en"]}}<br />{{m["zh"]}}
-							{% endfor %}
-						</li>
-					</ul>
 				</td>
 			</tr>
 			{% endif %}
@@ -438,6 +419,7 @@
 	{% if days_after_this == -1 %}
 	<p class="ps">Note: The machine-readable menus emailed to the Daily Bulletin staff do not contain end-of-week dinner and weekend meals.</p>
 	{% endif %}
+	<p class="ps">I am aware that the menu currently looks a bit ugly; I am not experienced in webpage layout at all. HTML/CSS experts wanted!</p>
 
 	<h2>Daily Inspiration 每日灵感</h2>
 	{% if inspiration_type %}
@@ -486,33 +468,26 @@
 	<h2>Regular Notices 常规通知</h2>
 	<ul>
 		<li>
+			<a href="https://forms.office.com/pages/responsepage.aspx?id=bNLT3ZexAE2jLR_9hMDClUPg4MiMFbZFh1B1P68pV6lUMUJHUjk2NEI1MU1ROTRFNjRQQ1NVSE5RSi4u">Student Council Suggestion Box</a>
+		</li>
+		<li>
 			Emergency phone: <a href="tel:+8618221990830">182 2199 0830</a>
 		</li>
 		<li>
 			AOD: {{aod}}
 		</li>
-		<li>
-			<a href="https://forms.office.com/Pages/ResponsePage.aspx?id=bNLT3ZexAE2jLR_9hMDClQBvFPSif2RFlhKTaMpIOlhUMjU3QVpQUTUxQ0g3SllJWUpUUkNHU1hJVy4u">Student Government Suggestions Form</a>
-		</li>
-		<li>
-			<a href="https://ykpaoschool-my.sharepoint.com/:b:/g/personal/cora_chen_ykpaoschool_cn/EUW1niuK0HtBjSH_Caak-zMBlwBQOYM1PeBCCIvm5ow9QA?e=xOr3Px">Fire Safety</a>
-		</li>
-		<li>
-			<a href="https://ykpaoschool-my.sharepoint.com/:b:/g/personal/cora_chen_ykpaoschool_cn/EYvgB6U6Z_lDv3G93gsApPIBu1e9iqSdjnRzmaEZYYXkaQ?e=ffh1VV">Earthquake Safety</a>
-		</li>
-		<li>
-			<a href="https://forms.office.com/Pages/ResponsePage.aspx?id=bNLT3ZexAE2jLR_9hMDClUal_2XHIiZDqlf87fF_sypUNEpHTjJBMlRaRUxDWDdMTVo5WFdDQk85Ry4u">Wellness Center Satisfaction Survey</a>
-		</li>
 	</ul>
-	<p class="ps">Disclaimer: Please check The Week Ahead for official information.</p>
+	<p class="ps" style="font-weight: bold;">Disclaimer: Please check The Week Ahead for official information.</p>
 </article>
 <footer>
 	<p>
-	<a href="https://sj.ykps.net/sjdb/">Home Page</a>
+	<a href="https://ykps.runxiyu.org/sjdb/">Home Page</a>
+	{#
 	·
-	<a href="https://sj.ykps.net/sjdb/arc">Archive</a>
+	<a href="https://ykps.runxiyu.org/sjdb/arc">Archive</a>
+	#}
 	·
-	<a href="mailto:sjdb@runxiyu.org">Contact</a>
+	<a href="mailto:s22537@stu.ykpaoschool.cn">Contact</a>
 	</p>
 </footer>
 </body>
