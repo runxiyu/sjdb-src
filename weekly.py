@@ -639,11 +639,11 @@ def download_menu(
     ):
         try:
             subject_1st_month = datetime.datetime.strptime(
-                matched_groups[0], "%B"
+                matched_groups[0], "%b" # issues here are probably locales
             ).month
             subject_1st_day = int(matched_groups[1])
         except ValueError:
-            raise ValueError(hit["resource"]["subject"]) from None
+            raise ValueError(hit["resource"]["subject"], matched_groups[0])
         if (
             subject_1st_month == datetime_target.month
             and subject_1st_day == datetime_target.day
