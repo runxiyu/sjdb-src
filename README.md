@@ -98,3 +98,8 @@ to
 whenever possible, but if you must use GitHub, you could submit a pull
 request, and it will be automatically converted and sent to the mailing
 list as a patch, by a [Webhook](https://git.runxiyu.org/runxiyu/current/hybrid.git/tree/hybrid.py).
+
+## Maintainers
+
+* Runxi Yu
+* Wilson Shu
