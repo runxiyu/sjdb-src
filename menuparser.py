@@ -21,6 +21,7 @@ import openpyxl
 from pprint import pprint
 import json
 
+
 def menu_item_fix(s):
     if not s:
         return None
@@ -77,9 +78,9 @@ def parse_meal_table(rows, initrow, t):
 def parse_menus(filename):
     wb = openpyxl.load_workbook(filename=filename)
     ws = wb["菜单"]
-    
+
     final = {}
-    
+
     i = -1
     while i < len(rows) - 1:
         i += 1
@@ -129,5 +130,5 @@ def parse_menus(filename):
             )
         # elif "Students Snack" in row[1].value:
         #    parse_meal_table(rows, i)
-    
+
     return final
