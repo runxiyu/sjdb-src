@@ -196,28 +196,28 @@ def generate(
     logger.info("Finished processing inspirations")
     logger.info("Starting On This Day")
 
-    on_this_day_html_en: typing.Optional[str]
-    try:
-        with open("otd_en-%s.html" % datetime_target.strftime("%m-%d"), "r") as fd:
-            on_this_day_html_en = fd.read()
-    except FileNotFoundError:
-        on_this_day_html_en = None
-        logger.warning("On This Day English not found")
-    on_this_day_html_zh: typing.Optional[str]
-    try:
-        with open("otd_zh-%s.html" % datetime_target.strftime("%m-%d"), "r") as fd:
-            on_this_day_html_zh = fd.read()
-    except FileNotFoundError:
-        on_this_day_html_zh = None
-        logger.warning("On This Day Chinese not found")
-    logger.info("Finished On This Day")
+    on_this_day_html_en = ""
+    on_this_day_html_zh = ""
+    # on_this_day_html_en: typing.Optional[str]
+    # try:
+    #     with open("otd_en-%s.html" % datetime_target.strftime("%m-%d"), "r") as fd:
+    #         on_this_day_html_en = fd.read()
+    # except FileNotFoundError:
+    #     logger.warning("On This Day English not found")
+    # on_this_day_html_zh: typing.Optional[str]
+    # try:
+    #     with open("otd_zh-%s.html" % datetime_target.strftime("%m-%d"), "r") as fd:
+    #         on_this_day_html_zh = fd.read()
+    # except FileNotFoundError:
+    #     logger.warning("On This Day Chinese not found")
+    # logger.info("Finished On This Day")
 
-    #     logger.info("Starting In The News")
-    #     in_the_news_html_en = legacy_wikipedia.get_in_the_news_en()
-    #     in_the_news_html_zh = legacy_wikipedia.get_in_the_news_zh()
-    #     logger.info("Finished In The News")
     in_the_news_html_en = ""
     in_the_news_html_zh = ""
+    # logger.info("Starting In The News")
+    # in_the_news_html_en = legacy_wikipedia.get_in_the_news_en()
+    # in_the_news_html_zh = legacy_wikipedia.get_in_the_news_zh()
+    # logger.info("Finished In The News")
 
     data = {
         "stddate": datetime_target.strftime("%Y-%m-%d"),
