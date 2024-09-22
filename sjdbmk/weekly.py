@@ -47,9 +47,7 @@ import re
 
 import requests
 
-import common
-import theweekahead
-import menuparser
+from . import common, twa, menu
 
 logger = logging.getLogger(__name__)
 
@@ -76,17 +74,17 @@ def generate(
     logger.info("Output filename: %s" % output_filename)
 
     token = common.acquire_token(graph_client_id, graph_authority, graph_username, graph_password, graph_scopes)
-    theweekahead.download_or_report_the_week_ahead(token, datetime_target, the_week_ahead_url)
-    menuparser.download_or_report_menu(token, datetime_target, weekly_menu_query_string, weekly_menu_sender, weekly_menu_subject_regex, weekly_menu_subject_regex_four_groups)
-    community_time, aods = theweekahead.parse_the_week_ahead(datetime_target, the_week_ahead_community_time_page_number, the_week_ahead_aod_page_number)
-    menu = menuparser.parse_menus(datetime_target)
+    twa.download_or_report_the_week_ahead(token, datetime_target, the_week_ahead_url)
+    menu.download_or_report_menu(token, datetime_target, weekly_menu_query_string, weekly_menu_sender, weekly_menu_subject_regex, weekly_menu_subject_regex_four_groups)
+    community_time, aods = twa.parse_the_week_ahead(datetime_target, the_week_ahead_community_time_page_number, the_week_ahead_aod_page_number)
+    menu_data = menu.parse_menus(datetime_target)
 
     logger.info("Packing final data")
     final_data = {
         "start_date": datetime_target.strftime("%Y-%m-%d"),
         "community_time": community_time,
         "aods": aods,
-        "menu": menu,
+        "menu": menu_data,
     }
 
     logger.info("Dumping data to: %s" % output_filename)
