@@ -47,10 +47,12 @@ import email
 import re
 
 import requests
-import msal  # type: ignore
-import pptx  # type: ignore
-import pptx.exc  # type: ignore
+import msal # type: ignore
+import pptx
+import pptx.exc
 import pypdf
+
+import menuparser
 
 logger = logging.getLogger(__name__)
 
@@ -113,8 +115,7 @@ def generate(
             "Calendar response status code is not 200", calendar_response.content
         )
     calendar_object = calendar_response.json()
-    pprint(calendar_object)
-    # exit(1)
+    # pprint(calendar_object)
 
     the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime(
         "%Y%m%d"
@@ -130,17 +131,9 @@ def generate(
     else:
         logger.info("The Week Ahead already exists at %s" % the_week_ahead_filename)
 
-    menu_en_filename = "menu-%s-en.pptx" % datetime_target.strftime("%Y%m%d")
-    menu_zh_filename = "menu-%s-zh.pptx" % datetime_target.strftime("%Y%m%d")
-    menu_pdf_filename = "menu-%s.pdf" % datetime_target.strftime(
-        "%Y%m%d"
-    )  # TODO: Snacks
-    if not (
-        os.path.isfile(menu_en_filename)
-        and os.path.isfile(menu_zh_filename)
-        and os.path.isfile(menu_pdf_filename)
-    ):
-        logger.info("Not all menus exist, downloading")
+    menu_filename = "menu-%s.xlsx" % datetime_target.strftime("%Y%m%d")
+    if not (os.path.isfile(menu_filename)):
+        logger.info("Menu not found, downloading")
         download_menu(
             token,
             datetime_target,
@@ -148,14 +141,10 @@ def generate(
             weekly_menu_sender,
             weekly_menu_subject_regex,
             weekly_menu_subject_regex_four_groups,
-            menu_en_filename,
-            menu_zh_filename,
-            menu_pdf_filename,
+            menu_filename,
         )
         assert (
-            os.path.isfile(menu_en_filename)
-            and os.path.isfile(menu_zh_filename)
-            and os.path.isfile(menu_pdf_filename)
+            os.path.isfile(menu_filename)
         )
     else:
         logger.info("All menus already exist")
@@ -186,31 +175,9 @@ def generate(
     logger.info("Finished parsing The Week Ahead")
 
     logger.info("Beginning to extract menus")
-    try:
-        menu = extract_pptx_menus(
-            menu_en_filename,
-            menu_zh_filename,
-            weekly_menu_breakfast_page_number,
-            weekly_menu_lunch_page_number,
-            weekly_menu_dinner_page_number,
-        )
-        snacks = fix_snacks(extract_snacks(menu_pdf_filename))
-    except MealTableShapeError as e:
-        logger.error(
-            "Invalid menus! Opening both PPTX menus for manual intervention.", e.args[0]
-        )
-        subprocess.run([soffice, menu_en_filename, menu_zh_filename], check=True)
-        menu = extract_pptx_menus(
-            menu_en_filename,
-            menu_zh_filename,
-            weekly_menu_breakfast_page_number,
-            weekly_menu_lunch_page_number,
-            weekly_menu_dinner_page_number,
-        )
-        snacks = fix_snacks(extract_snacks(menu_pdf_filename))
-    del menu_en_filename
-    del menu_zh_filename
-    del menu_pdf_filename
+    menu = menuparser.extract(
+        menu_filename,
+    )
     logger.info("Finished extracting menus")
 
     final_data = {
@@ -218,7 +185,7 @@ def generate(
         "community_time": community_time,
         "aods": aods,
         "menu": menu,
-        "snacks": snacks,
+        "snacks": {}, # TODO
     }
 
     with open(output_filename, "w", encoding="utf-8") as fd:
@@ -399,122 +366,7 @@ def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
     return hits
 
 
-def slide_to_srep(slide: pptx.slide) -> list[list[tuple[str, int, int, str]]]:
-    # NOTE: Only processes FIRST table.
-    for shape in slide.shapes:
-        if shape.has_table:
-            break
-    else:
-        raise ValueError("Slide doesn't contain any tables?")
-    tbl = shape.table
-    row_count: int = len(tbl.rows)
-    col_count: int = len(tbl.columns)
-    tbll = []
-    for r in range(row_count):
-        row: list[tuple[str, int, int, str]] = [("", 0, 0, "")] * col_count
-        for c in range(col_count):
-            cell_text = ""
-            cell = tbl.cell(r, c)
-            assert isinstance(cell.span_height, int)
-            assert isinstance(cell.span_width, int)
-            paragraphs = cell.text_frame.paragraphs
-            for paragraph in paragraphs:
-                for run in paragraph.runs:
-                    cell_text += run.text
-            row[c] = (
-                "o" if cell.is_merge_origin else ("s" if cell.is_spanned else "n"),
-                cell.span_height,
-                cell.span_width,
-                cell_text.strip(),
-            )
-        tbll.append(row)
-    return tbll
-
-
-def combine_parsed_meal_tables(
-    en: list[list[list[str]]], cn: list[list[list[str]]]
-) -> list[list[list[list[str]]]]:
-    if not equal_shapes(cn, en):
-        raise MealTableShapeError(
-            "Augmented menus not in the same shape",
-            zero_list(en),
-            zero_list(cn),
-            en,
-            cn,
-        )
-
-    c = zero_list(en)
-
-    for j in range(len(en)):
-        for i in range(len(en[j])):
-            for k in range(len(en[j][i])):
-                c[j][i][k] = {"en": en[j][i][k], "zh": cn[j][i][k]}
-    return c
-
-
-def parse_meal_tables(
-    tbl: list[list[tuple[str, int, int, str]]]
-) -> list[list[list[str]]]:
-    windows = []
-    for j in range(1, len(tbl)):
-        cell = tbl[j][0]
-        if cell[0] in ["o", "n"]:
-            windows.append((j, j - 1 + cell[1]))
-
-    daysmenus: list[list[list[str]]] = [[], [], [], [], []]
-
-    if len(tbl[0]) != 6:
-        logger.warning(100 * "@" + "Fewer than 5 days of menus, time to audit?")
-
-    for i in range(1, len(tbl[0])):
-        for s, f in windows:
-            thiswindow = []
-            for j in range(s, f + 1):
-                if tbl[j][i][-1].strip() and (
-                    tbl[j][i][-1].strip().lower().replace("，", "")
-                    not in ["condiments selection", "葱香菜榨菜丝老干妈生抽醋"]
-                ):  # seriously
-                    thiswindow.append(
-                        tbl[j][i][-1]
-                        .replace("， ", ", ")
-                        .replace("，", ", ")
-                        .replace("Juice /", "Juice/")
-                    )
-            daysmenus[i - 1].append(thiswindow)
-    return daysmenus
-
-
-def extract_pptx_menus(
-    menu_en_filename: str,
-    menu_zh_filename: str,
-    breakfast_page_number: int,
-    lunch_page_number: int,
-    dinner_page_number: int,
-) -> dict[str, list[list[list[list[str]]]]]:
-    try:
-        enprs = pptx.Presentation(menu_en_filename)
-        zhprs = pptx.Presentation(menu_zh_filename)
-    except pptx.exc.PackageNotFoundError:
-        raise ValueError("Presentation path doesn't exist or is broken") from None
-
-    mtable = {}
-    for meal, pageno in {
-        "breakfast": breakfast_page_number,
-        "lunch": lunch_page_number,
-        "dinner": dinner_page_number,
-    }.items():
-        try:
-            mtable[meal] = combine_parsed_meal_tables(
-                parse_meal_tables(slide_to_srep(enprs.slides[pageno])),
-                parse_meal_tables(slide_to_srep(zhprs.slides[pageno])),
-            )
-        except MealTableShapeError:
-            raise MealTableShapeError(meal) from None
-    assert len(mtable) == 3
-    return mtable
-
-
-def extract_aods(prs: pptx.Presentation, aod_page_number: int) -> list[str]:
+def extract_aods(prs: pptx.presentation.Presentation, aod_page_number: int) -> list[str]:
     slide = prs.slides[aod_page_number]
     aods = ["", "", "", ""]
     for shape in slide.shapes:
@@ -545,7 +397,7 @@ def extract_aods(prs: pptx.Presentation, aod_page_number: int) -> list[str]:
 
 
 def extract_community_time(
-    prs: pptx.Presentation, community_time_page_number: int
+    prs: pptx.presentation.Presentation, community_time_page_number: int
 ) -> list[list[str]]:
 
     slide = prs.slides[community_time_page_number]
@@ -626,9 +478,7 @@ def download_menu(
     weekly_menu_sender: str,
     weekly_menu_subject_regex: str,
     weekly_menu_subject_regex_four_groups: tuple[int, int, int, int],
-    menu_en_filename: str,
-    menu_zh_filename: str,
-    menu_pdf_filename: str,
+    menu_filename: str,
 ) -> None:
     search_results = search_mail(token, weekly_menu_query_string)
 
@@ -639,7 +489,7 @@ def download_menu(
     ):
         try:
             subject_1st_month = datetime.datetime.strptime(
-                matched_groups[0], "%b" # issues here are probably locales
+                matched_groups[0], "%b"  # issues here are probably locales
             ).month
             subject_1st_day = int(matched_groups[1])
         except ValueError:
@@ -665,19 +515,17 @@ def download_menu(
 
     for part in msg.walk():
         if part.get_content_type() in [
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ]:
             payload = part.get_payload(decode=True)
             payload_filename_encoded = part.get_filename()
             if not payload_filename_encoded:
-                raise ValueError("pptx/pdf doesn't have a filename, very unexpected")
+                raise ValueError("xlsx does not have a filename")
             payload_filename_mix = email.header.decode_header(payload_filename_encoded)
             assert len(payload_filename_mix) == 1
             payload_filename_encoded, payload_filename_encoding = payload_filename_mix[
                 0
             ]
-
             if payload_filename_encoding is None:
                 assert isinstance(payload_filename_encoded, str)
                 filename = payload_filename_encoded
@@ -685,120 +533,13 @@ def download_menu(
                 filename = payload_filename_encoded.decode(payload_filename_encoding)
             else:
                 raise TypeError("What?")
-            if (
-                part.get_content_type()
-                == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-            ):
-                if "EN" in filename:
-                    formatted_filename = menu_en_filename
-                elif "CH" in filename or "CN" in filename or "ZH" in filename:
-                    formatted_filename = menu_zh_filename
-                else:
-                    raise ValueError(
-                        "%s does not contain a language specification string (EN/CH/CN)"
-                        % filename
-                    )
-            elif part.get_content_type() == "application/pdf":
-                formatted_filename = menu_pdf_filename
-            else:
-                continue
 
             pb = bytes(payload)
 
-            with open(formatted_filename, "wb") as w:
+            with open(menu_filename, "wb") as w:
                 w.write(pb)
-
-
-def extract_snacks(fn: str) -> tuple[list[str], list[str], list[str]]:
-
-    visitor_state: list[Optional[float]] = [None, None]
-
-    def visitor_1st_run(
-        text: str,
-        cm: list[float],
-        tm: list[float],
-        fdict: Optional[pypdf.generic._data_structures.DictionaryObject],
-        fsize: Optional[float],
-    ) -> None:
-        if "students snack" in text.lower():
-            visitor_state[0], visitor_state[1] = tm[-2], tm[-1]
-
-    pdf = pypdf.PdfReader(fn)
-    page = pdf.pages[2]
-    page.extract_text(visitor_text=visitor_1st_run)
-
-    snack_state: list[int] = [0]
-    morning: list[str] = []
-    afternoon: list[str] = []
-    evening: list[str] = []
-
-    if (not visitor_state[0]) or (not visitor_state[1]):
-        page = pdf.pages[3]
-        page.extract_text(visitor_text=visitor_1st_run)
-
-        snack_state = [0]
-        morning = []
-        afternoon = []
-        evening = []
-
-    def visitor_2nd_run(
-        text: str,
-        cm: list[float],
-        tm: list[float],
-        fdict: Optional[pypdf.generic._data_structures.DictionaryObject],
-        fsize: Optional[float],
-    ) -> None:
-        assert visitor_state[1] is not None
-        if tm[-1] < visitor_state[1]:
-            tsl = text.strip().lower()
-            if "morning snack" in tsl:
-                snack_state[0] = 1
-            elif "afternoon snack" in tsl:
-                snack_state[0] = 2
-            elif "evening snack" in tsl:
-                snack_state[0] = 3
-            elif tsl:
-                match snack_state[0]:
-                    case 1:
-                        morning.append(text.strip())
-                    case 2:
-                        afternoon.append(text.strip())
-                    case 3:
-                        evening.append(text.strip())
-                    case _:
-                        pass
-
-    page.extract_text(visitor_text=visitor_2nd_run)
-
-    return morning, afternoon, evening
-
-
-def fix_snacks(
-    extracted: tuple[list[str], list[str], list[str]]
-) -> list[list[dict[str, str]]]:
-    res: list[list[dict[str, str]],] = []
-    for snackset in extracted:
-        sres = []
-        if len(snackset) % 2 == 0:
-            pass
-        else:
-            roasted_bread = False
-            actual_snack_set = []
-            for p in snackset:
-                if p == "Roasted Bread":
-                    roasted_bread = True
-                elif roasted_bread and p == "with Ham and Cheese":
-                    actual_snack_set.append("Roasted Bread with Ham and Cheese")
-                    roasted_bread = False
-                else:
-                    actual_snack_set.append(p)
-            snackset = actual_snack_set
-        for i in range(0, len(snackset), 2):
-            sres.append({"en": snackset[i], "zh": snackset[i + 1]})
-        res.append(sres)
-
-    assert len(res) == 3
-    return res
+    else:
+        raise ValueError("No proper attachment found in email")
 
 
 if __name__ == "__main__":
