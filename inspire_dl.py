@@ -35,9 +35,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description="Download Daily Inspirations")
     # parser.add_argument("--changeme", default=None, help="changeme")
-    parser.add_argument(
-        "--config", default="config.ini", help="path to the configuration file"
-    )
+    parser.add_argument("--config", default="config.ini", help="path to the configuration file")
     args = parser.parse_args()
 
     config = ConfigParser()
@@ -57,9 +55,7 @@ def main() -> None:
     assert isinstance(response_json, list)
     remote_submission_list = set(response_json)
 
-    local_submission_list = set(
-        [sn.lstrip("inspire-") for sn in os.listdir() if sn.startswith("inspire-")]
-    )
+    local_submission_list = set([sn.lstrip("inspire-") for sn in os.listdir() if sn.startswith("inspire-")])
     to_fetch = remote_submission_list - local_submission_list
     if to_fetch:
         logger.info("Going to fetch: %s" % ", ".join(to_fetch))
@@ -98,9 +94,7 @@ def main() -> None:
                 timeout=20,
             ) as r:
                 with open("inspattach-%s" % os.path.basename(sub["file"]), "wb") as fd:
-                    logger.info(
-                        "Saved to inspattach-%s" % os.path.basename(sub["file"])
-                    )
+                    logger.info("Saved to inspattach-%s" % os.path.basename(sub["file"]))
                     shutil.copyfileobj(r.raw, fd)
                     fd.flush()
 

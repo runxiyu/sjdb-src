@@ -65,11 +65,7 @@ def index() -> ResponseType:
     with open(
         os.path.join(
             config["general"]["build_path"],
-            "day-%s.json"
-            % (
-                datetime.datetime.now(tz=zoneinfo.ZoneInfo("Asia/Shanghai"))
-                + datetime.timedelta(days=1)
-            ).strftime("%Y%m%d"),
+            "day-%s.json" % (datetime.datetime.now(tz=zoneinfo.ZoneInfo("Asia/Shanghai")) + datetime.timedelta(days=1)).strftime("%Y%m%d"),
         ),
         "r",
         encoding="utf-8",

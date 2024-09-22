@@ -68,9 +68,7 @@ def sendmail(
             raise TypeError("Naive datetimes are no longer supported")
         utcwhen = when.astimezone(datetime.timezone.utc)
         isoval = utcwhen.isoformat(timespec="seconds").replace("+00:00", "Z")
-        data["singleValueExtendedProperties"] = [
-            {"id": "SystemTime 0x3FEF", "value": isoval}
-        ]
+        data["singleValueExtendedProperties"] = [{"id": "SystemTime 0x3FEF", "value": isoval}]
 
     response = requests.post(
         "https://graph.microsoft.com/v1.0/me/messages",
@@ -86,8 +84,7 @@ def sendmail(
     if response2.status_code != 202:
         print(response2.content)
         raise ValueError(
-            "Graph response to messages/%s/send returned something other than 202 Accepted"
-            % response["id"],
+            "Graph response to messages/%s/send returned something other than 202 Accepted" % response["id"],
             response2,
         )
     # TODO: Handle more errors
@@ -100,20 +97,14 @@ def main() -> None:
         default=None,
         help="the date of the bulletin to send, in local time, in YYYY-MM-DD; defaults to tomorrow",
     )
-    parser.add_argument(
-        "--config", default="config.ini", help="path to the configuration file"
-    )
+    parser.add_argument("--config", default="config.ini", help="path to the configuration file")
     args = parser.parse_args()
     config = ConfigParser()
     config.read(args.config)
     if args.date:
-        date = datetime.datetime.strptime(args.date, "%Y-%m-%d").replace(
-            tzinfo=zoneinfo.ZoneInfo(config["general"]["timezone"])
-        )
+        date = datetime.datetime.strptime(args.date, "%Y-%m-%d").replace(tzinfo=zoneinfo.ZoneInfo(config["general"]["timezone"]))
     else:
-        date = datetime.datetime.now(
-            zoneinfo.ZoneInfo(config["general"]["timezone"])
-        ) + datetime.timedelta(days=1)
+        date = datetime.datetime.now(zoneinfo.ZoneInfo(config["general"]["timezone"])) + datetime.timedelta(days=1)
 
     os.chdir(config["general"]["build_path"])
 
@@ -136,8 +127,7 @@ def main() -> None:
         ),
         "content_type": "HTML",
         "importance": "Normal",
-        "subject": config["sendmail"]["subject_format"]
-        % date.strftime(config["sendmail"]["subject_date_format"]),
+        "subject": config["sendmail"]["subject_format"] % date.strftime(config["sendmail"]["subject_date_format"]),
         "body": html,
     }
 

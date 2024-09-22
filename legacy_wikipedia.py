@@ -62,21 +62,7 @@ def get_on_this_day_zh() -> None:
                 li_element.append(event)
                 ul_element.append(li_element)
 
-            result = str(p_element).replace(
-                "/wiki", "https://zh.wikipedia.org/zh-cn"
-            ).replace('<span class="otd-year">', "<b>").replace(
-                "</span>：", "：</b>"
-            ) + str(
-                ul_element
-            ).replace(
-                "/wiki", "https://zh.wikipedia.org/zh-cn"
-            ).replace(
-                "</dt><dd>", " – "
-            ).replace(
-                '<div class="event">\n<dt>', ""
-            ).replace(
-                "</dd>\n</div>", ""
-            )
+            result = str(p_element).replace("/wiki", "https://zh.wikipedia.org/zh-cn").replace('<span class="otd-year">', "<b>").replace("</span>：", "：</b>") + str(ul_element).replace("/wiki", "https://zh.wikipedia.org/zh-cn").replace("</dt><dd>", " – ").replace('<div class="event">\n<dt>', "").replace("</dd>\n</div>", "")
             result = re.sub(r"<small>.*?图.*?</small>", "", result)
 
             with open("otd_zh-" + formatted_time_yearless + ".html", "w") as file:
@@ -105,9 +91,7 @@ def get_on_this_day_en() -> None:
 
         month = months[index]
         day = 1
-        url = (
-            "https://en.m.wikipedia.org/wiki/Wikipedia:Selected_anniversaries/" + month
-        )
+        url = "https://en.m.wikipedia.org/wiki/Wikipedia:Selected_anniversaries/" + month
         response = requests.get(url, timeout=15)
         html = response.text
         soup = bs4.BeautifulSoup(html, "html.parser")
@@ -135,16 +119,7 @@ def get_on_this_day_en() -> None:
             for li in li_contents:
                 p_element_2.append(li)
 
-            result = (
-                str(p_element).replace("/wiki", "https://en.wikipedia.org/wiki")
-                + str(ul_element).replace("/wiki", "https://en.wikipedia.org/wiki")
-                + "\n"
-                + str(p_element_2)
-                .replace("</li><li>", "; ")
-                .replace("<li>", "<b>Births and Deaths: </b>")
-                .replace("</li>", "")
-                .replace("/wiki", "https://en.wikipedia.org/wiki")
-            )
+            result = str(p_element).replace("/wiki", "https://en.wikipedia.org/wiki") + str(ul_element).replace("/wiki", "https://en.wikipedia.org/wiki") + "\n" + str(p_element_2).replace("</li><li>", "; ").replace("<li>", "<b>Births and Deaths: </b>").replace("</li>", "").replace("/wiki", "https://en.wikipedia.org/wiki")
             result = re.sub(r" <i>.*?icture.*?</i>", "", result)
 
             with open("otd_en-" + formatted_time_yearless + ".html", "w") as file:
@@ -200,23 +175,7 @@ def get_in_the_news_en() -> str:
         else:
             p_element_3.append(li)
 
-    result = (
-        str(ul_element).replace("/wiki", "https://en.wikipedia.org/wiki")
-        + str(p_element_2)
-        .replace("</li><li>", "; ")
-        .replace("<li>", "<b>Ongoing: </b>")
-        .replace("</li>", "")
-        .replace("\n;", ";")
-        .replace("/wiki", "https://en.wikipedia.org/wiki")
-        .replace("</p>", "<br>")
-        + str(p_element_3)
-        .replace("</li><li>", "; ")
-        .replace("<li>", "<b>Recent deaths: </b>")
-        .replace("</li>", "")
-        .replace("\n;", ";")
-        .replace("/wiki", "https://en.wikipedia.org/wiki")
-        .replace("<p>", "")
-    )
+    result = str(ul_element).replace("/wiki", "https://en.wikipedia.org/wiki") + str(p_element_2).replace("</li><li>", "; ").replace("<li>", "<b>Ongoing: </b>").replace("</li>", "").replace("\n;", ";").replace("/wiki", "https://en.wikipedia.org/wiki").replace("</p>", "<br>") + str(p_element_3).replace("</li><li>", "; ").replace("<li>", "<b>Recent deaths: </b>").replace("</li>", "").replace("\n;", ";").replace("/wiki", "https://en.wikipedia.org/wiki").replace("<p>", "")
     result = re.sub(r" <i>\(.*?\)</i>", "", result)
 
     return result
@@ -255,11 +214,7 @@ def get_in_the_news_zh() -> str:
             "",
         )
         .replace("/wiki", "https://zh.wikipedia.org/zh-cn")
-        + str(p_element_3)
-        .replace('<span class="hlist inline">', "<b>最近逝世：</b>")
-        .replace("</span>", "")
-        .replace("－", "；")
-        .replace("/wiki", "https://zh.wikipedia.org/zh-cn")
+        + str(p_element_3).replace('<span class="hlist inline">', "<b>最近逝世：</b>").replace("</span>", "").replace("－", "；").replace("/wiki", "https://zh.wikipedia.org/zh-cn")
     ).replace("</p><p>", "<br>")
     result = re.sub(r"<small.*?>.*?</small>", "", result)
 
@@ -267,12 +222,8 @@ def get_in_the_news_zh() -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Legacy Wikipedia script for the Daily Bulletin"
-    )
-    parser.add_argument(
-        "--config", default="config.ini", help="path to the configuration file"
-    )
+    parser = argparse.ArgumentParser(description="Legacy Wikipedia script for the Daily Bulletin")
+    parser.add_argument("--config", default="config.ini", help="path to the configuration file")
     args = parser.parse_args()
 
     config = configparser.ConfigParser()

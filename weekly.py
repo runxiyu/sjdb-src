@@ -92,37 +92,25 @@ def generate(
     output_filename = "week-%s.json" % datetime_target.strftime("%Y%m%d")
     logger.info("Output filename: %s" % output_filename)
 
-    token: str = acquire_token(
-        graph_client_id, graph_authority, graph_username, graph_password, graph_scopes
-    )
+    token: str = acquire_token(graph_client_id, graph_authority, graph_username, graph_password, graph_scopes)
 
     calendar_response = requests.get(
-        "https://graph.microsoft.com/v1.0/users/%s/calendar/calendarView"
-        % calendar_address,
+        "https://graph.microsoft.com/v1.0/users/%s/calendar/calendarView" % calendar_address,
         headers={"Authorization": "Bearer " + token},
         params={
             "startDateTime": datetime_target.replace(microsecond=0).isoformat(),
-            "endDateTime": (datetime_target + datetime.timedelta(days=7))
-            .replace(microsecond=0)
-            .isoformat(),
+            "endDateTime": (datetime_target + datetime.timedelta(days=7)).replace(microsecond=0).isoformat(),
         },
         timeout=15,
     )
     if calendar_response.status_code != 200:
-        raise ValueError(
-            "Calendar response status code is not 200", calendar_response.content
-        )
+        raise ValueError("Calendar response status code is not 200", calendar_response.content)
     calendar_object = calendar_response.json()
     # pprint(calendar_object)
 
-    the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime(
-        "%Y%m%d"
-    )
+    the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime("%Y%m%d")
     if not os.path.isfile(the_week_ahead_filename):
-        logger.info(
-            "The Week Ahead doesn't seem to exist at %s, downloading"
-            % the_week_ahead_filename
-        )
+        logger.info("The Week Ahead doesn't seem to exist at %s, downloading" % the_week_ahead_filename)
         download_share_url(token, the_week_ahead_url, the_week_ahead_filename)
         logger.info("Downloaded The Week Ahead to %s" % the_week_ahead_filename)
         assert os.path.isfile(the_week_ahead_filename)
@@ -153,9 +141,7 @@ def generate(
             the_week_ahead_community_time_page_number,
         )
     except ValueError:
-        logger.error(
-            "Invalid community time! Opening The Week Ahead for manual intervention."
-        )
+        logger.error("Invalid community time! Opening The Week Ahead for manual intervention.")
         del the_week_ahead_presentation
         subprocess.run([soffice, the_week_ahead_filename], check=True)
         the_week_ahead_presentation = pptx.Presentation(the_week_ahead_filename)
@@ -197,9 +183,7 @@ def main() -> None:
         default=None,
         help="the start of the week to generate for, in local time, YYYY-MM-DD; defaults to next Monday",
     )
-    parser.add_argument(
-        "--config", default="config.ini", help="path to the configuration file"
-    )
+    parser.add_argument("--config", default="config.ini", help="path to the configuration file")
     args = parser.parse_args()
 
     if args.date:
@@ -216,9 +200,7 @@ def main() -> None:
         datetime_target_aware = datetime_target_naive.replace(tzinfo=tzinfo)
     else:
         datetime_current_aware = datetime.datetime.now(tz=tzinfo)
-        datetime_target_aware = datetime_current_aware + datetime.timedelta(
-            days=((-datetime_current_aware.weekday()) % 7)
-        )
+        datetime_target_aware = datetime_current_aware + datetime.timedelta(days=((-datetime_current_aware.weekday()) % 7))
         del datetime_current_aware
     del datetime_target_naive
     logger.info("Generating for %s" % datetime_target_aware.strftime("%Y-%m-%d %Z"))
@@ -228,25 +210,17 @@ def main() -> None:
     os.chdir(build_path)
 
     the_week_ahead_url = config["the_week_ahead"]["file_url"]
-    the_week_ahead_community_time_page_number = int(
-        config["the_week_ahead"]["community_time_page_number"]
-    )
+    the_week_ahead_community_time_page_number = int(config["the_week_ahead"]["community_time_page_number"])
     the_week_ahead_aod_page_number = int(config["the_week_ahead"]["aod_page_number"])
 
-    weekly_menu_breakfast_page_number = int(
-        config["weekly_menu"]["breakfast_page_number"]
-    )
+    weekly_menu_breakfast_page_number = int(config["weekly_menu"]["breakfast_page_number"])
     weekly_menu_lunch_page_number = int(config["weekly_menu"]["lunch_page_number"])
     weekly_menu_dinner_page_number = int(config["weekly_menu"]["dinner_page_number"])
     weekly_menu_query_string = config["weekly_menu"]["query_string"]
     weekly_menu_sender = config["weekly_menu"]["sender"]
     weekly_menu_subject_regex = config["weekly_menu"]["subject_regex"]
-    weekly_menu_subject_regex_four_groups_raw = config["weekly_menu"][
-        "subject_regex_four_groups"
-    ].split(" ")
-    weekly_menu_subject_regex_four_groups = tuple(
-        [int(z) for z in weekly_menu_subject_regex_four_groups_raw]
-    )
+    weekly_menu_subject_regex_four_groups_raw = config["weekly_menu"]["subject_regex_four_groups"].split(" ")
+    weekly_menu_subject_regex_four_groups = tuple([int(z) for z in weekly_menu_subject_regex_four_groups_raw])
     assert len(weekly_menu_subject_regex_four_groups) == 4
     del weekly_menu_subject_regex_four_groups_raw
     # weekly_menu_dessert_page_number = config["weekly_menu"]["dessert_page_number"]
@@ -288,18 +262,13 @@ def main() -> None:
 
 
 def encode_sharing_url(url: str) -> str:
-    return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip(
-        "="
-    )
+    return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip("=")
 
 
-def download_share_url(
-    token: str, url: str, local_filename: str, chunk_size: int = 65536
-) -> None:
+def download_share_url(token: str, url: str, local_filename: str, chunk_size: int = 65536) -> None:
 
     download_direct_url = requests.get(
-        "https://graph.microsoft.com/v1.0/shares/%s/driveItem"
-        % encode_sharing_url(url),
+        "https://graph.microsoft.com/v1.0/shares/%s/driveItem" % encode_sharing_url(url),
         headers={"Authorization": "Bearer " + token},
         timeout=20,
     ).json()["@microsoft.graph.downloadUrl"]
@@ -329,9 +298,7 @@ def acquire_token(
         graph_client_id,
         authority=graph_authority,
     )
-    result = app.acquire_token_by_username_password(
-        graph_username, graph_password, scopes=graph_scopes
-    )
+    result = app.acquire_token_by_username_password(graph_username, graph_password, scopes=graph_scopes)
 
     if "access_token" in result:
         assert isinstance(result["access_token"], str)
@@ -355,15 +322,17 @@ def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
             ]
         },
         timeout=20,
-    ).json()["value"][0]["hitsContainers"][0]["hits"]
+    ).json()["value"][
+        0
+    ]["hitsContainers"][
+        0
+    ]["hits"]
     assert isinstance(hits, list)
     assert isinstance(hits[0], dict)
     return hits
 
 
-def extract_aods(
-    prs: pptx.presentation.Presentation, aod_page_number: int
-) -> list[str]:
+def extract_aods(prs: pptx.presentation.Presentation, aod_page_number: int) -> list[str]:
     slide = prs.slides[aod_page_number]
     aods = ["", "", "", ""]
     for shape in slide.shapes:
@@ -384,18 +353,14 @@ def extract_aods(
                 elif day == "thursday":
                     aods[3] = aod
             if not all(aods):
-                raise ValueError(
-                    "AOD parsing: The Week Ahead doesn't include all AOD days, or the formatting is borked"
-                )
+                raise ValueError("AOD parsing: The Week Ahead doesn't include all AOD days, or the formatting is borked")
             return aods
     raise ValueError("AOD parsing: The Week Ahead's doesn't even include \"Monday\"")
     # TODO: this is one of those places where Monday is *expected* to be the first day.
     # TODO: revamp this. this is ugly!
 
 
-def extract_community_time(
-    prs: pptx.presentation.Presentation, community_time_page_number: int
-) -> list[list[str]]:
+def extract_community_time(prs: pptx.presentation.Presentation, community_time_page_number: int) -> list[list[str]]:
 
     slide = prs.slides[community_time_page_number]
     for shape in slide.shapes:
@@ -408,13 +373,9 @@ def extract_community_time(
     row_count = len(tbl.rows)
     col_count = len(tbl.columns)
     if col_count not in [4, 5]:
-        raise ValueError(
-            "Community time parsing: The Week Ahead community time table does not have 4 or 5 columns"
-        )
+        raise ValueError("Community time parsing: The Week Ahead community time table does not have 4 or 5 columns")
     if col_count == 4:
-        logger.warning(
-            "Community time warning: only four columns found, assuming that Y12 has graduated"
-        )
+        logger.warning("Community time warning: only four columns found, assuming that Y12 has graduated")
 
     res = [["" for c in range(col_count)] for r in range(row_count)]
 
@@ -429,11 +390,7 @@ def extract_community_time(
                 t = t.strip()
                 if "whole school assembly" in t.lower():
                     t = "Whole School Assembly"
-                elif (
-                    "tutor group check-in" in t.lower()
-                    or "follow up day" in t.lower()
-                    or "open session for tutor and tutee" in t.lower()
-                ):
+                elif "tutor group check-in" in t.lower() or "follow up day" in t.lower() or "open session for tutor and tutee" in t.lower():
                     t = "Tutor Time"
                 res[r][c] = t
                 if cell.is_merge_origin:
@@ -444,14 +401,9 @@ def extract_community_time(
     return [x[1:] for x in res[1:]]
 
 
-def filter_mail_results_by_sender(
-    original: Iterable[dict[str, Any]], sender: str
-) -> Iterator[dict[str, Any]]:
+def filter_mail_results_by_sender(original: Iterable[dict[str, Any]], sender: str) -> Iterator[dict[str, Any]]:
     for hit in original:
-        if (
-            hit["resource"]["sender"]["emailAddress"]["address"].lower()
-            == sender.lower()
-        ):
+        if hit["resource"]["sender"]["emailAddress"]["address"].lower() == sender.lower():
             yield hit
 
 
@@ -485,16 +437,11 @@ def download_menu(
         weekly_menu_subject_regex_four_groups,
     ):
         try:
-            subject_1st_month = datetime.datetime.strptime(
-                matched_groups[0], "%b"  # issues here are probably locales
-            ).month
+            subject_1st_month = datetime.datetime.strptime(matched_groups[0], "%b").month  # issues here are probably locales
             subject_1st_day = int(matched_groups[1])
         except ValueError:
             raise ValueError(hit["resource"]["subject"], matched_groups[0])
-        if (
-            subject_1st_month == datetime_target.month
-            and subject_1st_day == datetime_target.day
-        ):
+        if subject_1st_month == datetime_target.month and subject_1st_day == datetime_target.day:
             break
     else:
         raise ValueError("No SJ-menu email found")

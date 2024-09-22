@@ -69,9 +69,7 @@ def sendmail(
             raise TypeError("Naive datetimes are no longer supported")
         utcwhen = when.astimezone(datetime.timezone.utc)
         isoval = utcwhen.isoformat(timespec="seconds").replace("+00:00", "Z")
-        data["singleValueExtendedProperties"] = [
-            {"id": "SystemTime 0x3FEF", "value": isoval}
-        ]
+        data["singleValueExtendedProperties"] = [{"id": "SystemTime 0x3FEF", "value": isoval}]
 
     if not reply_to:
         response = requests.post(
@@ -111,8 +109,7 @@ def sendmail(
     if response2.status_code != 202:
         pprint(response2.content.decode("utf-8", "replace"))
         raise ValueError(
-            "Graph response to messages/%s/send returned something other than 202 Accepted"
-            % response["id"],
+            "Graph response to messages/%s/send returned something other than 202 Accepted" % response["id"],
         )
 
     return msgid
@@ -132,20 +129,14 @@ def main() -> None:
         action="store_true",
         help="Reply to the previous bulletin when sending (BROKEN)",
     )
-    parser.add_argument(
-        "--config", default="config.ini", help="path to the configuration file"
-    )
+    parser.add_argument("--config", default="config.ini", help="path to the configuration file")
     args = parser.parse_args()
     config = ConfigParser()
     config.read(args.config)
     if args.date:
-        date = datetime.datetime.strptime(args.date, "%Y-%m-%d").replace(
-            tzinfo=zoneinfo.ZoneInfo(config["general"]["timezone"])
-        )
+        date = datetime.datetime.strptime(args.date, "%Y-%m-%d").replace(tzinfo=zoneinfo.ZoneInfo(config["general"]["timezone"]))
     else:
-        date = datetime.datetime.now(
-            zoneinfo.ZoneInfo(config["general"]["timezone"])
-        ) + datetime.timedelta(days=1)
+        date = datetime.datetime.now(zoneinfo.ZoneInfo(config["general"]["timezone"])) + datetime.timedelta(days=1)
 
     os.chdir(config["general"]["build_path"])
 
@@ -162,8 +153,7 @@ def main() -> None:
     if not args.reply:
         a = sendmail(
             token,
-            subject=config["sendmail"]["subject_format"]
-            % date.strftime(config["sendmail"]["subject_date_format"]),
+            subject=config["sendmail"]["subject_format"] % date.strftime(config["sendmail"]["subject_date_format"]),
             body=html,
             to=config["sendmail"]["to_1"].split(" "),
             cc=[],
@@ -182,8 +172,7 @@ def main() -> None:
             fd.write(a)
         b = sendmail(
             token,
-            subject=config["sendmail"]["subject_format"]
-            % date.strftime(config["sendmail"]["subject_date_format"]),
+            subject=config["sendmail"]["subject_format"] % date.strftime(config["sendmail"]["subject_date_format"]),
             body=html,
             to=config["sendmail"]["to_2"].split(" "),
             cc=[],
@@ -205,8 +194,7 @@ def main() -> None:
             last_a = fd.read().strip()
         a = sendmail(
             token,
-            subject=config["sendmail"]["subject_format"]
-            % date.strftime(config["sendmail"]["subject_date_format"]),
+            subject=config["sendmail"]["subject_format"] % date.strftime(config["sendmail"]["subject_date_format"]),
             body=html,
             to=config["sendmail"]["to_1"].split(" "),
             cc=[],
@@ -228,8 +216,7 @@ def main() -> None:
             last_b = fd.read().strip()
         b = sendmail(
             token,
-            subject=config["sendmail"]["subject_format"]
-            % date.strftime(config["sendmail"]["subject_date_format"]),
+            subject=config["sendmail"]["subject_format"] % date.strftime(config["sendmail"]["subject_date_format"]),
             body=html,
             to=config["sendmail"]["to_2"].split(" "),
             cc=[],

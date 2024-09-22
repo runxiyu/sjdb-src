@@ -27,18 +27,10 @@ def menu_item_fix(s: str) -> Optional[str]:
         return None
     if s == "Condiments Selection\n葱，香菜，榨菜丝，老干妈，生抽，醋":
         return None
-    return (
-        s.strip()
-        .replace("Biscuit /", "Biscuit/")
-        .replace("Juice /", "Juice/")
-        .replace(" \n", "\n")
-        .replace("\n ", "\n")
-    )
+    return s.strip().replace("Biscuit /", "Biscuit/").replace("Juice /", "Juice/").replace(" \n", "\n").replace("\n ", "\n")
 
 
-def parse_meal_table(
-    rows: list[Any], initrow: int, t: list[str]
-) -> dict[str, dict[str, list[str]]]:
+def parse_meal_table(rows: list[Any], initrow: int, t: list[str]) -> dict[str, dict[str, list[str]]]:
     assert rows[initrow + 1][1].value is None
 
     igroups = []

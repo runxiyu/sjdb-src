@@ -57,9 +57,7 @@ def main() -> None:
         # TODO: Verify validity of date
         # TODO: Verify consistency of date elsewhere
     )
-    parser.add_argument(
-        "--config", default="config.ini", help="path to the configuration file"
-    )
+    parser.add_argument("--config", default="config.ini", help="path to the configuration file")
     args = parser.parse_args()
 
     if args.date:
@@ -114,9 +112,7 @@ def generate(
         logger.warning('Cycle day not found, using "SA"')
 
     for days_since_beginning in range(0, 5):
-        week_start_date = datetime_target - datetime.timedelta(
-            days=days_since_beginning
-        )
+        week_start_date = datetime_target - datetime.timedelta(days=days_since_beginning)
         try:
             with open(
                 "week-%s.json" % week_start_date.strftime("%Y%m%d"),
@@ -129,9 +125,7 @@ def generate(
         else:
             break
     else:
-        raise FileNotFoundError(
-            "Cannot find a week-{date}.json file without five prior days"
-        )
+        raise FileNotFoundError("Cannot find a week-{date}.json file without five prior days")
 
     try:
         aod = week_data["aods"][days_since_beginning]
@@ -182,13 +176,9 @@ def generate(
         inspiration_image_fn = inspjq["file"]
         if inspiration_image_fn:
             logger.info("Inspiration has attachment %s" % inspiration_image_fn)
-            inspiration_image_mime, inspiration_image_extra_encoding = (
-                mimetypes.guess_type(inspiration_image_fn)
-            )
+            inspiration_image_mime, inspiration_image_extra_encoding = mimetypes.guess_type(inspiration_image_fn)
             assert not inspiration_image_extra_encoding
-            with open(
-                "inspattach-%s" % os.path.basename(inspiration_image_fn), "rb"
-            ) as ifd:
+            with open("inspattach-%s" % os.path.basename(inspiration_image_fn), "rb") as ifd:
                 inspiration_image_data = base64.b64encode(ifd.read()).decode("ascii")
         else:
             inspiration_image_data = None
@@ -257,9 +247,7 @@ def generate(
         "in_the_news_html_en": in_the_news_html_en,
         "in_the_news_html_zh": in_the_news_html_zh,
     }
-    with open(
-        "day-%s.json" % datetime_target.strftime("%Y%m%d"), "w", encoding="utf-8"
-    ) as fd:
+    with open("day-%s.json" % datetime_target.strftime("%Y%m%d"), "w", encoding="utf-8") as fd:
         json.dump(data, fd, ensure_ascii=False, indent="\t")
     logger.info(
         "Data dumped to " + "day-%s.json" % datetime_target.strftime("%Y%m%d"),
