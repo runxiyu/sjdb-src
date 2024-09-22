@@ -183,6 +183,7 @@ def download_menu(
 
             with open(menu_filename, "wb") as w:
                 w.write(pb)
+            break
     else:
         raise ValueError("No proper attachment found in email")
 
