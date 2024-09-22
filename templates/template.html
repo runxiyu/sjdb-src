@@ -170,251 +170,212 @@
 	</table>
 	{% endif %}
 	<h2>Delicious Dinings 今日佳肴</h2>
-	{#
 	<table id="menu">
 		<colgroup>
 			<col style="width: 5%">
-			<col style="width: 23.75%;">
-			<col style="width: 23.75%;">
-			<col style="width: 23.75%;">
-			<col style="width: 23.75%;">
-			<col style="width: 23.75%;">
-			<col style="width: 23.75%; border-left: 2px solid rgb(180, 180, 180);">
+			<col style="width: 31.667%;">
+			<col style="width: 31.667%;">
+			<col style="width: 31.667%; border-left: 2px solid rgb(180, 180, 180);">
 		</colgroup>
+		{#
 		<thead>
 			<tr>
-				<th scope="col">Day</th>
+				<th scope="col">Period</th>
 				<th scope="col">Taste of Asia</th>
 				<th scope="col">Eat Global</th>
 				<th scope="col">Revolution / Piccola Italia</th>
 				<th scope="col">Others</th>
 			</tr>
 		</thead>
+		#}
 		<tbody>
 			<tr class="today">
 				<th scope="row">{{weekdays_abbrev[0]}}<br/>Brkfst</th>
-				{% for i in [0, 1] %}
 				<td>
-					{% if today_breakfast[i] %}
-					<ul>
-					{% for m in today_breakfast[i] %}
-					<li>
-						{{m["en"]}}<br />{{m["zh"]}}
-					</li>
-					{% endfor %}
-					</ul>
-					{% endif %}
-				</td>
-				{% endfor %}
-				<td>
-					{% if today_breakfast[2] %}
-					<span class="wtitle">Revolution</span>
-					<ul>
-						{% for m in today_breakfast[2] %}
-						<li>
-							{{m["en"]}}<br />{{m["zh"]}}
-						</li>
-						{% endfor %}
-					</ul>
-					{% endif %}
-					{% if today_breakfast[3] %}
+					{% if today_breakfast["Piccola Italia"] %}
 					<span class="wtitle">Piccola Italia</span>
 					<ul>
-						{% for m in today_breakfast[3] %}
-						<li>
-							{{m["en"]}}<br />{{m["zh"]}}
-						</li>
+						{% for m in today_breakfast["Piccola Italia"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if today_breakfast["Eat Global"] %}
+					<span class="wtitle">Eat Global</span>
+					<ul>
+						{% for m in today_breakfast["Eat Global"] %}
+						<li>{{ m }}</li>
 						{% endfor %}
 					</ul>
 					{% endif %}
 				</td>
 				<td>
-					{% if snack_morning %}
-					<span class="wtitle">10:05 Snack</span>
+					{% if today_breakfast["Revolution Noodle"] %}
+					<span class="wtitle">Revolution Noodle</span>
 					<ul>
-						<li>
-							{{snack_morning["en"]}}
-							<br />
-							{{snack_morning["zh"]}}
-						</li>
+						{% for m in today_breakfast["Revolution Noodle"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if today_breakfast["Taste of Asia"] %}
+					<span class="wtitle">Taste of Asia</span>
+					<ul>
+						{% for m in today_breakfast["Taste of Asia"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
 					</ul>
 					{% endif %}
 				</td>
-				</tr>
+				<td>
+					{% if today_breakfast["Self Pick-up"] %}
+					<span class="wtitle">Self Pick-up</span>
+					<ul>
+						{% for m in today_breakfast["Self Pick-up"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if today_breakfast["Fruit/Drink"] %}
+					<span class="wtitle">Fruit/Drink</span>
+					<ul>
+						{% for m in today_breakfast["Fruit/Drink"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+				</td>
+			</tr>
 			<tr class="today">
 				<th scope="row">{{weekdays_abbrev[0]}}<br/>Lunch</th>
-				{% for i in [0, 1] %}
 				<td>
-					{% if today_lunch[i] %}
-					<ul>
-					{% for m in today_lunch[i] %}
-					<li>
-						{{m["en"]}}<br />{{m["zh"]}}
-					</li>
-					{% endfor %}
-					</ul>
-					{% endif %}
-				</td>
-				{% endfor %}
-				<td>
-					{% if today_lunch[2] %}
-					<span class="wtitle">Revolution</span>
-					<ul>
-						{% for m in today_lunch[2] %}
-						<li>
-							{{m["en"]}}<br />{{m["zh"]}}
-						</li>
-						{% endfor %}
-					</ul>
-					{% endif %}
-					{% if today_lunch[3] %}
+					{% if today_lunch["Piccola Italia"] %}
 					<span class="wtitle">Piccola Italia</span>
 					<ul>
-						{% for m in today_lunch[3] %}
-						<li>
-							{{m["en"]}}<br />{{m["zh"]}}
-						</li>
+						{% for m in today_lunch["Piccola Italia"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if today_lunch["Eat Global"] %}
+					<span class="wtitle">Eat Global</span>
+					<ul>
+						{% for m in today_lunch["Eat Global"] %}
+						<li>{{ m }}</li>
 						{% endfor %}
 					</ul>
 					{% endif %}
 				</td>
 				<td>
+					{% if today_lunch["Revolution Noodle"] %}
+					<span class="wtitle">Revolution Noodle</span>
+					<ul>
+						{% for m in today_lunch["Revolution Noodle"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if today_lunch["Taste of Asia"] %}
+					<span class="wtitle">Taste of Asia</span>
+					<ul>
+						{% for m in today_lunch["Taste of Asia"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+				</td>
+				<td>
+					{% if today_lunch["Vegetarian"] %}
 					<span class="wtitle">Vegetarian</span>
 					<ul>
-						<li>
-							{{ today_lunch[4][0]["en"] }}<br />{{ today_lunch[4][0]["zh"] }}
-							{% for m in today_lunch[4][1:] %}
-							<br />{{m["en"]}}<br />{{m["zh"]}}
-							{% endfor %}
-						</li>
+						{% for m in today_lunch["Vegetarian"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
 					</ul>
-					<span class="wtitle">Soup</span>
+					{% endif %}
+					{% if today_lunch["Daily Soup"] %}
+					<span class="wtitle">Daily Soup</span>
 					<ul>
-						<li>
-							{{ today_lunch[5][0]["en"] }}<br />{{ today_lunch[5][0]["zh"] }}
-							{% for m in today_lunch[5][1:] %}
-							<br />{{m["en"]}}<br />{{m["zh"]}}
-							{% endfor %}
-						</li>
+						{% for m in today_lunch["Daily Soup"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
 					</ul>
-					{% if snack_afternoon %}
-					<span class="wtitle">15:45 Snack</span>
+					{% endif %}
+					{% if today_lunch["Dessert/Fruit/Drink"] %}
+					<span class="wtitle">Dessert/Fruit/Drink</span>
 					<ul>
-						<li>
-							{{snack_afternoon["en"]}}
-							<br />
-							{{snack_afternoon["zh"]}}
-						</li>
-						{% endif %}
+						{% for m in today_lunch["Dessert/Fruit/Drink"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
 					</ul>
+					{% endif %}
 				</td>
 			</tr>
-			{% if today_dinner and days_after_this >= 0 %}
 			<tr class="today">
 				<th scope="row">{{weekdays_abbrev[0]}}<br/>Dinner</th>
-				{% for i in [0, 1] %}
 				<td>
-					{% if today_dinner[i] %}
-					<ul>
-					{% for m in today_dinner[i] %}
-					<li>
-						{{m["en"]}}<br />{{m["zh"]}}
-					</li>
-					{% endfor %}
-					</ul>
-					{% endif %}
-				</td>
-				{% endfor %}
-				<td>
-					{% if today_dinner[2] %}
-					<span class="wtitle">Revolution</span>
-					<ul>
-						{% for m in today_dinner[2] %}
-						<li>
-							{{m["en"]}}<br />{{m["zh"]}}
-						</li>
-						{% endfor %}
-					</ul>
-					{% endif %}
-					{% if today_dinner[3] %}
+					{% if today_dinner["Piccola Italia"] %}
 					<span class="wtitle">Piccola Italia</span>
 					<ul>
-						{% for m in today_dinner[3] %}
-						<li>
-							{{m["en"]}}<br />{{m["zh"]}}
-						</li>
+						{% for m in today_dinner["Piccola Italia"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if today_dinner["Eat Global"] %}
+					<span class="wtitle">Eat Global</span>
+					<ul>
+						{% for m in today_dinner["Eat Global"] %}
+						<li>{{ m }}</li>
 						{% endfor %}
 					</ul>
 					{% endif %}
 				</td>
 				<td>
-					{% if today_dinner[4] %}
+					{% if today_dinner["Revolution Noodle"] %}
+					<span class="wtitle">Revolution Noodle</span>
+					<ul>
+						{% for m in today_dinner["Revolution Noodle"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if today_dinner["Taste of Asia"] %}
+					<span class="wtitle">Taste of Asia</span>
+					<ul>
+						{% for m in today_dinner["Taste of Asia"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+				</td>
+				<td>
+					{% if today_dinner["Vegetarian"] %}
 					<span class="wtitle">Vegetarian</span>
 					<ul>
-						<li>
-							{{ today_dinner[4][0]["en"] }}<br />{{ today_dinner[4][0]["zh"] }}
-							{% for m in today_dinner[4][1:] %}
-							<br />{{m["en"]}}<br />{{m["zh"]}}
-							{% endfor %}
-						</li>
-					</ul>
-					{% endif %}
-					{% if today_dinner[5] %}
-					<span class="wtitle">Soup</span>
-					<ul>
-						<li>
-							{{ today_dinner[5][0]["en"] }}<br />{{ today_dinner[5][0]["zh"] }}
-							{% for m in today_dinner[5][1:] %}
-							<br />{{m["en"]}}<br />{{m["zh"]}}
-							{% endfor %}
-						</li>
-					</ul>
-					{% endif %}
-				</td>
-			</tr>
-			{% endif %}
-			{% if next_breakfast and days_after_this >= 0 %}
-			<tr class="not-today">
-				<th scope="row">{{weekdays_abbrev[1]}}<br/>Brkfst</th>
-				{% for i in [0, 1] %}
-				<td>
-					{% if next_breakfast[i] %}
-					<ul>
-					{% for m in next_breakfast[i] %}
-					<li>
-						{{m["en"]}}<br />{{m["zh"]}}
-					</li>
-					{% endfor %}
-					</ul>
-					{% endif %}
-				</td>
-				{% endfor %}
-				<td>
-					{% if next_breakfast[2] %}
-					<span class="wtitle">Revolution</span>
-					<ul>
-						{% for m in next_breakfast[2] %}
-						<li>
-							{{m["en"]}}<br />{{m["zh"]}}
-						</li>
+						{% for m in today_dinner["Vegetarian"] %}
+						<li>{{ m }}</li>
 						{% endfor %}
 					</ul>
 					{% endif %}
-					{% if next_breakfast[3] %}
-					<span class="wtitle">Piccola Italia</span>
+					{% if today_dinner["Daily Soup"] %}
+					<span class="wtitle">Daily Soup</span>
 					<ul>
-						{% for m in next_breakfast[3] %}
-						<li>
-							{{m["en"]}}<br />{{m["zh"]}}
-						</li>
+						{% for m in today_dinner["Daily Soup"] %}
+						<li>{{ m }}</li>
+						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if today_dinner["Dessert/Fruit/Drink"] %}
+					<span class="wtitle">Dessert/Fruit/Drink</span>
+					<ul>
+						{% for m in today_dinner["Dessert/Fruit/Drink"] %}
+						<li>{{ m }}</li>
 						{% endfor %}
 					</ul>
 					{% endif %}
 				</td>
-				<td>
-				</td>
 			</tr>
-			{% endif %}
 		</tbody>
 	</table>
 	{% if days_after_this == -1 %}
