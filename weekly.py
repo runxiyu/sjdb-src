@@ -173,7 +173,7 @@ def generate(
     logger.info("Finished parsing The Week Ahead")
 
     logger.info("Beginning to extract menus")
-    menu = menuparser.extract(
+    menu = menuparser.parse_menus(
         menu_filename,
     )
     logger.info("Finished extracting menus")
@@ -183,7 +183,6 @@ def generate(
         "community_time": community_time,
         "aods": aods,
         "menu": menu,
-        "snacks": {},  # TODO
     }
 
     with open(output_filename, "w", encoding="utf-8") as fd:
