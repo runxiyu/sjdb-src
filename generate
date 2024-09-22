@@ -1,12 +1,18 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+src_home="${BASH_SOURCE[0]%/*}"
+
+export PYTHONPATH="$src_home:$PYTHONPATH"
 
 if [ -z "$1" ]
 then
-	TARGET="$(date +"%Y-%m-%d")"
+	TARGET="$(date -d tomorrow '+%Y-%m-%d')"
 else
 	TARGET="$1"
 fi
 printf 'Target: %s\n' "$TARGET"
+
+set -u
 
 if [ "$(date -d "$TARGET" +"%a")" = "Sun" ] || [ "$(date -d "$TARGET" +"%a")" = "Sat" ]
 then
@@ -17,19 +23,19 @@ fi
 if [ "$(date -d "$TARGET" +"%a")" = "Mon" ]
 then
 	printf 'Target day is a Monday, running weekly.py too\n' >&2
-	python3 weekly.py --date="$TARGET" || exit 1
+	python3 -m sjdbmk.weekly --date="$TARGET" || exit 1
 fi
 
 printf 'Running daily.py\n' >&2
-python3 daily.py --date="$TARGET" || exit 2
+python3 -m sjdbmk.daily --date="$TARGET" || exit 2
 printf 'Running pack.py\n' >&2
-python3 pack.py --date="$TARGET" || exit 3
+python3 -m sjdbmk.pack --date="$TARGET" || exit 3
 xdg-open ../sjdb-build/sjdb-"$(printf '%s' "$TARGET" | tr -d '-')".html
 read -p "Is this bulletin OK to send? [y/N] " res
 if [ "$res" = "y" ]
 then
 	printf 'Running sendmail.py\n' >&2
-	python3 sendmail.py --date="$TARGET" || exit 4
+	python3 -m sjdbmk.sendmail --date="$TARGET" || exit 4
 else
 	printf 'Not sending this bulletin. You may run sendmail manually instead:\npython3 sendmail.py --date=%s\n' "$TARGET" >&2
 fi
