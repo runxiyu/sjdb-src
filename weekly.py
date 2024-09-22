@@ -50,7 +50,6 @@ import requests
 import msal  # type: ignore
 import pptx
 import pptx.exc
-import pypdf
 
 import menuparser
 

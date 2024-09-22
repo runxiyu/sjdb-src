@@ -3,6 +3,6 @@ jinja2
 msal
 python-pptx
 requests
-pypdf >= 4.2.0
 beautifulsoup4
 types-beautifulsoup4
+openpyxl
