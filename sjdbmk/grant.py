@@ -21,8 +21,13 @@ from __future__ import annotations
 from pprint import pprint
 from configparser import ConfigParser
 from typing import Any
-import requests
+import sys
+import os
+
 import msal  # type: ignore
+import requests
+
+from . import common
 
 # logging.basicConfig(level=logging.DEBUG)
 # logging.getLogger("msal").setLevel(logging.INFO)
@@ -63,7 +68,9 @@ def test_login(app: msal.PublicClientApplication, config: ConfigParser) -> dict[
 
 def main() -> None:
     config = ConfigParser()
-    config.read("config.ini")
+    if len(sys.argv) != 2 or not os.path.isfile(sys.argv[1]):
+        raise common.DailyBulletinError("You must specify a configuration file as the only argument")
+    config.read(sys.argv[1])
     app = msal.PublicClientApplication(
         config["credentials"]["client_id"],
         authority=config["credentials"]["authority"],
