@@ -17,10 +17,19 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-import openpyxl
 
 from typing import Optional, Any
+import email
+import requests
+import datetime
+import logging
+import os
 
+import openpyxl
+
+import common
+
+logger = logging.getLogger(__name__)
 
 def menu_item_fix(s: str) -> Optional[str]:
     if not s:
@@ -67,7 +76,9 @@ def parse_meal_table(rows: list[Any], initrow: int, t: list[str]) -> dict[str, d
     return ret
 
 
-def parse_menus(filename: str) -> dict[str, dict[str, dict[str, list[str]]]]:
+def parse_menus(datetime_target: datetime.datetime) -> dict[str, dict[str, dict[str, list[str]]]]:
+    logger.info("Parsing menus")
+    filename = "menu-%s.xlsx" % datetime_target.strftime("%Y%m%d")
     wb = openpyxl.load_workbook(filename=filename)
     ws = wb["菜单"]
     rows = list(ws.iter_rows())
@@ -125,3 +136,69 @@ def parse_menus(filename: str) -> dict[str, dict[str, dict[str, list[str]]]]:
         #    parse_meal_table(rows, i)
 
     return final
+
+def download_menu(
+    token: str,
+    datetime_target: datetime.datetime,
+    weekly_menu_query_string: str,
+    weekly_menu_sender: str,
+    weekly_menu_subject_regex: str,
+    weekly_menu_subject_regex_four_groups: tuple[int, int, int, int],
+    menu_filename: str,
+) -> None:
+    search_results = common.search_mail(token, weekly_menu_query_string)
+
+    for hit, matched_groups in common.filter_mail_results_by_subject_regex_groups(
+        common.filter_mail_results_by_sender(search_results, weekly_menu_sender),
+        weekly_menu_subject_regex,
+        weekly_menu_subject_regex_four_groups,
+    ):
+        try:
+            subject_1st_month = datetime.datetime.strptime(matched_groups[0], "%b").month  # issues here are probably locales
+            subject_1st_day = int(matched_groups[1])
+        except ValueError:
+            raise ValueError(hit["resource"]["subject"], matched_groups[0])
+        if subject_1st_month == datetime_target.month and subject_1st_day == datetime_target.day:
+            break
+    else:
+        raise ValueError("No menu email found")
+
+    with requests.get(
+        "https://graph.microsoft.com/v1.0/me/messages/%s/$value" % hit["hitId"],
+        headers={
+            "Authorization": "Bearer %s" % token,
+            "Accept-Encoding": "identity",
+        },
+        stream=True,
+        timeout=20,
+    ) as r:
+        msg = email.message_from_bytes(r.content)
+
+    for part in msg.walk():
+        if part.get_content_type() in [
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ]:
+            payload = part.get_payload(decode=True)
+            pb = bytes(payload)
+
+            with open(menu_filename, "wb") as w:
+                w.write(pb)
+    else:
+        raise ValueError("No proper attachment found in email")
+
+def download_or_report_menu(token: str, datetime_target: datetime.datetime, weekly_menu_query_string: str, weekly_menu_sender: str, weekly_menu_subject_regex: str, weekly_menu_subject_regex_four_groups: tuple[int, int, int, int]) -> None:
+    menu_filename = "menu-%s.xlsx" % datetime_target.strftime("%Y%m%d")
+    if not (os.path.isfile(menu_filename)):
+        logger.info("Menu not found, downloading")
+        download_menu(
+            token,
+            datetime_target,
+            weekly_menu_query_string,
+            weekly_menu_sender,
+            weekly_menu_subject_regex,
+            weekly_menu_subject_regex_four_groups,
+            menu_filename,
+        )
+        assert os.path.isfile(menu_filename)
+    else:
+        logger.info("Menu already exists")
