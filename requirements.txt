@@ -1,8 +1,11 @@
+beautifulsoup4
 flask
 jinja2
 msal
+openpyxl
 python-pptx
 requests
-beautifulsoup4
 types-beautifulsoup4
-openpyxl
+types-openpyxl
+types-requests
+werkzeug
