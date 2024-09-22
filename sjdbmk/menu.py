@@ -27,9 +27,10 @@ import os
 
 import openpyxl
 
-import common
+from . import common
 
 logger = logging.getLogger(__name__)
+
 
 def menu_item_fix(s: str) -> Optional[str]:
     if not s:
@@ -137,6 +138,7 @@ def parse_menus(datetime_target: datetime.datetime) -> dict[str, dict[str, dict[
 
     return final
 
+
 def download_menu(
     token: str,
     datetime_target: datetime.datetime,
@@ -186,6 +188,7 @@ def download_menu(
             break
     else:
         raise ValueError("No proper attachment found in email")
+
 
 def download_or_report_menu(token: str, datetime_target: datetime.datetime, weekly_menu_query_string: str, weekly_menu_sender: str, weekly_menu_subject_regex: str, weekly_menu_subject_regex_four_groups: tuple[int, int, int, int]) -> None:
     menu_filename = "menu-%s.xlsx" % datetime_target.strftime("%Y%m%d")

@@ -51,6 +51,7 @@ from . import common, twa, menu
 
 logger = logging.getLogger(__name__)
 
+
 def generate(
     datetime_target: datetime.datetime,  # expected to be local time
     the_week_ahead_url: str,
@@ -90,6 +91,7 @@ def generate(
     with open(output_filename, "w", encoding="utf-8") as fd:
         json.dump(final_data, fd, ensure_ascii=False, indent="\t")
     return output_filename
+
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)

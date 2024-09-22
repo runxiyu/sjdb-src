@@ -17,10 +17,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-from typing import Any 
+from typing import Any
 import datetime
 
 import requests
+
 
 def calfetch(token: str, calendar_address: str, datetime_target: datetime.datetime) -> Any:
     calendar_response = requests.get(

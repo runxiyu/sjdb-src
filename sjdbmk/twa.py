@@ -23,9 +23,10 @@ import os
 
 import pptx
 
-import common
+from . import common
 
 logger = logging.getLogger(__name__)
+
 
 def download_or_report_the_week_ahead(token: str, datetime_target: datetime.datetime, the_week_ahead_url: str) -> None:
     the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime("%Y%m%d")
@@ -35,6 +36,7 @@ def download_or_report_the_week_ahead(token: str, datetime_target: datetime.date
         assert os.path.isfile(the_week_ahead_filename)
     else:
         logger.info("The Week Ahead already exists at %s" % the_week_ahead_filename)
+
 
 def parse_the_week_ahead(datetime_target: datetime.datetime, the_week_ahead_community_time_page_number: int, the_week_ahead_aod_page_number: int) -> tuple[list[list[str]], list[str]]:
     logger.info("Parsing The Week Ahead")
@@ -46,6 +48,7 @@ def parse_the_week_ahead(datetime_target: datetime.datetime, the_week_ahead_comm
     )
     aods = extract_aods(the_week_ahead_presentation, the_week_ahead_aod_page_number)
     return community_time, aods
+
 
 def extract_community_time(prs: pptx.presentation.Presentation, community_time_page_number: int) -> list[list[str]]:
     slide = prs.slides[community_time_page_number]
@@ -85,6 +88,7 @@ def extract_community_time(prs: pptx.presentation.Presentation, community_time_p
                             res[r + sh][c + sw] = t
 
     return [x[1:] for x in res[1:]]
+
 
 def extract_aods(prs: pptx.presentation.Presentation, aod_page_number: int) -> list[str]:
     slide = prs.slides[aod_page_number]

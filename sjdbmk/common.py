@@ -26,6 +26,7 @@ import shutil
 import requests
 import msal  # type: ignore
 
+
 def acquire_token(
     graph_client_id: str,
     graph_authority: str,
@@ -43,6 +44,7 @@ def acquire_token(
         assert isinstance(result["access_token"], str)
         return result["access_token"]
     raise ValueError("Authentication error in password login")
+
 
 def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
     hits = requests.post(
@@ -69,6 +71,7 @@ def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
     assert isinstance(hits[0], dict)
     return hits
 
+
 def encode_sharing_url(url: str) -> str:
     return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip("=")
 
@@ -94,6 +97,7 @@ def download_share_url(token: str, url: str, local_filename: str, chunk_size: in
             shutil.copyfileobj(r.raw, fd)
             fd.flush()
 
+
 def filter_mail_results_by_sender(original: Iterable[dict[str, Any]], sender: str) -> Iterator[dict[str, Any]]:
     for hit in original:
         if hit["resource"]["sender"]["emailAddress"]["address"].lower() == sender.lower():
@@ -111,6 +115,7 @@ def filter_mail_results_by_subject_regex_groups(
         matched = re.compile(subject_regex).match(hit["resource"]["subject"])
         if matched:
             yield (hit, [matched.group(group) for group in subject_regex_groups])
+
 
 class DailyBulletinError(Exception):
     pass
