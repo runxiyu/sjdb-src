@@ -54,16 +54,19 @@
 </header>
 <article>
 	<p>
+	Happy {{weekday_english}}! Thank you for supporting the Daily Bulletin. Please note that this is supplementary to <a href="{{the_week_ahead_url}}">The Week Ahead</a> and is not an official source of information, and the Daily Bulletin staff accept no liability for the accuracy or validity. Please fill in the respective forms to <a href="https://ykps.runxiyu.org/sjdb/submit">share inspirations</a> or <a href="https://ykps.runxiyu.org/sjdb/unsub">unsubscribe</a>.
+	<br />
+	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是<a href="{{the_week_ahead_url}}">每周展望</a>的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="https://ykps.runxiyu.org/sjdb/submit">分享灵感</a>或<a href="https://ykps.runxiyu.org/sjdb/unsub">退订</a>。
+	</p>
+
+	<h2>Daily Bulletin Project Info 每日公告项目信息</h2>
+	<p>
 	The Daily Bulletin project has returned. Last year, it was maintained by <a href="https://albertttan.github.io">Albert Tan</a>, who departed the school. The bulletin is now maintained by <a href="https://runxiyu.org">Runxi Yu</a> with the <a href="https://git.runxiyu.org/ykps/sjdb-src.git/about">automated build system</a> (<a href="https://github.com/runxiyu/sjdb-src">GitHub</a>).
 	</p>
 	<p>
 	Note: This version of the Daily Bulletin is still in beta. Importantly, this version <em>has not been approved officially</em> by the school administration, and is unfit for wider distribution. Only a number of people who the maintainer is sufficiently familiar with are receiving the bulletins currently.
 	</p>
-	<p>
-	Happy {{weekday_english}}! Thank you for supporting the Daily Bulletin. Please note that this is supplementary to <a href="{{the_week_ahead_url}}">The Week Ahead</a> and is not an official source of information, and the Daily Bulletin staff accept no liability for the accuracy or validity. Please fill in the respective forms to <a href="https://sj.ykps.net/sjdb/submit">share inspirations</a> or <a href="https://sj.ykps.net/sjdb/unsub">unsubscribe</a>.
-	<br />
-	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是<a href="{{the_week_ahead_url}}">每周展望</a>的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="https://sj.ykps.net/sjdb/submit">分享灵感</a>或<a href="https://sj.ykps.net/sjdb/unsub">退订</a>。
-	</p>
+
 	{% if community_time %}
 	<h2>Community Time 午休时间</h2>
 	<table id="community_time">
@@ -403,7 +406,7 @@
 	{% else %}
 	<p>
 	Unfortunately, there is no inspiration today.
-	Please feel free to <a href="https://sj.ykps.net/sjdb/submit">submit one</a>.
+	Please feel free to <a href="https://ykps.runxiyu.org/sjdb/submit">submit one</a>.
 	</p>
 	{% endif %}
 
