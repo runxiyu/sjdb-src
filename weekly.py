@@ -31,9 +31,8 @@
 # TODO: Check The Week Ahead's dates
 
 from __future__ import annotations
-from typing import Any, Optional, Iterable, Iterator
+from typing import Any, Iterable, Iterator
 from configparser import ConfigParser
-from pprint import pprint
 import argparse
 import logging
 import subprocess
@@ -60,8 +59,8 @@ class MealTableShapeError(ValueError):
     pass
 
 
-def zero_list(l: list[Any]) -> list[Any]:
-    return [(zero_list(i) if (isinstance(i, list)) else "") for i in l]
+def zero_list(lt: list[Any]) -> list[Any]:
+    return [(zero_list(i) if (isinstance(i, list)) else "") for i in lt]
 
 
 def equal_shapes(a: list[Any], b: list[Any]) -> bool:
@@ -516,22 +515,6 @@ def download_menu(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ]:
             payload = part.get_payload(decode=True)
-            payload_filename_encoded = part.get_filename()
-            if not payload_filename_encoded:
-                raise ValueError("xlsx does not have a filename")
-            payload_filename_mix = email.header.decode_header(payload_filename_encoded)
-            assert len(payload_filename_mix) == 1
-            payload_filename_encoded, payload_filename_encoding = payload_filename_mix[
-                0
-            ]
-            if payload_filename_encoding is None:
-                assert isinstance(payload_filename_encoded, str)
-                filename = payload_filename_encoded
-            elif isinstance(payload_filename_encoded, bytes):
-                filename = payload_filename_encoded.decode(payload_filename_encoding)
-            else:
-                raise TypeError("What?")
-
             pb = bytes(payload)
 
             with open(menu_filename, "wb") as w:

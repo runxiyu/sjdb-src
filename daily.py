@@ -29,7 +29,7 @@ import base64
 import mimetypes
 import typing
 
-import legacy_wikipedia
+# import legacy_wikipedia
 
 logger = logging.getLogger(__name__)
 
