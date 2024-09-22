@@ -47,7 +47,7 @@ import email
 import re
 
 import requests
-import msal # type: ignore
+import msal  # type: ignore
 import pptx
 import pptx.exc
 import pypdf
@@ -143,9 +143,7 @@ def generate(
             weekly_menu_subject_regex_four_groups,
             menu_filename,
         )
-        assert (
-            os.path.isfile(menu_filename)
-        )
+        assert os.path.isfile(menu_filename)
     else:
         logger.info("All menus already exist")
 
@@ -185,7 +183,7 @@ def generate(
         "community_time": community_time,
         "aods": aods,
         "menu": menu,
-        "snacks": {}, # TODO
+        "snacks": {},  # TODO
     }
 
     with open(output_filename, "w", encoding="utf-8") as fd:
@@ -366,7 +364,9 @@ def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
     return hits
 
 
-def extract_aods(prs: pptx.presentation.Presentation, aod_page_number: int) -> list[str]:
+def extract_aods(
+    prs: pptx.presentation.Presentation, aod_page_number: int
+) -> list[str]:
     slide = prs.slides[aod_page_number]
     aods = ["", "", "", ""]
     for shape in slide.shapes:
