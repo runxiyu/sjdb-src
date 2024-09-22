@@ -23,7 +23,7 @@ Just make a virtual environment and install from `requirements.txt`.
 
 ```
 python -m venv venv
-./venv/bin/activate
+. ./venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
