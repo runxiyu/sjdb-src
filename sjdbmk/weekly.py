@@ -66,7 +66,6 @@ def generate(
     graph_password: str,
     graph_scopes: list[str],
     calendar_address: str,
-    soffice: str,
 ) -> str:
     if not datetime_target.tzinfo:
         raise TypeError("Naive datetimes are unsupported")
@@ -143,8 +142,6 @@ def main() -> None:
 
     calendar_address = config["calendar"]["address"]
 
-    soffice = config["general"]["soffice"]
-
     # TODO: Validate the configuration
 
     generate(
@@ -162,7 +159,6 @@ def main() -> None:
         graph_password=graph_password,
         graph_scopes=graph_scopes,
         calendar_address=calendar_address,
-        soffice=soffice,
     )
 
 

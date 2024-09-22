@@ -79,12 +79,12 @@ def main() -> None:
     del datetime_target_naive
     logger.info("Generating for %s" % datetime_target_aware.strftime("%Y-%m-%d %Z"))
 
+    build_path = config["general"]["build_path"]
+    os.chdir(build_path)
+
     cycle_data_path = config["general"]["cycle_data"]
     with open(cycle_data_path, "r", encoding="utf-8") as cycle_data_file:
         cycle_data = json.load(cycle_data_file)
-
-    build_path = config["general"]["build_path"]
-    os.chdir(build_path)
 
     the_week_ahead_url = config["the_week_ahead"]["file_url"]
 
