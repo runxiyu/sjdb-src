@@ -104,7 +104,8 @@ def generate(
     weekday_en = DAYNAMES[weekday_enum]
     weekday_zh = DAYNAMES_CHINESE[weekday_enum]
     weekdays_short = DAYNAMES_SHORT[weekday_enum:]
-    # next_weekday_short = DAYNAMES_SHORT[weekday_enum + 1]
+    weekday_short = weekdays_short[0]
+    next_weekday_short = weekdays_short[1]
     try:
         day_of_cycle = cycle_data[datetime_target.strftime("%Y-%m-%d")]
     except KeyError:
@@ -133,11 +134,11 @@ def generate(
         logger.warning("AOD not found")
         aod = "None"
 
-    breakfast_today = week_data["menu"]["breakfast"][days_since_beginning]
-    lunch_today = week_data["menu"]["lunch"][days_since_beginning]
-    dinner_today = week_data["menu"]["dinner"][days_since_beginning]
+    breakfast_today = week_data["menu"]["Breakfast"][weekday_short]
+    lunch_today = week_data["menu"]["Lunch"][weekday_short]
+    dinner_today = week_data["menu"]["Dinner"][weekday_short]
     try:
-        breakfast_tomorrow = week_data["menu"]["breakfast"][days_since_beginning + 1]
+        breakfast_tomorrow = week_data["menu"]["Breakfast"][next_weekday_short]
     except IndexError:
         breakfast_tomorrow = None
     try:
@@ -196,8 +197,8 @@ def generate(
     logger.info("Finished processing inspirations")
     logger.info("Starting On This Day")
 
-    on_this_day_html_en = ""
-    on_this_day_html_zh = ""
+    on_this_day_html_en = None
+    on_this_day_html_zh = None
     # on_this_day_html_en: typing.Optional[str]
     # try:
     #     with open("otd_en-%s.html" % datetime_target.strftime("%m-%d"), "r") as fd:
@@ -212,8 +213,8 @@ def generate(
     #     logger.warning("On This Day Chinese not found")
     # logger.info("Finished On This Day")
 
-    in_the_news_html_en = ""
-    in_the_news_html_zh = ""
+    in_the_news_html_en = None
+    in_the_news_html_zh = None
     # logger.info("Starting In The News")
     # in_the_news_html_en = legacy_wikipedia.get_in_the_news_en()
     # in_the_news_html_zh = legacy_wikipedia.get_in_the_news_zh()
