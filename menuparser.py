@@ -21,8 +21,10 @@ import openpyxl
 from pprint import pprint
 import json
 
+from typing import Optional, Any
 
-def menu_item_fix(s):
+
+def menu_item_fix(s: str) -> Optional[str]:
     if not s:
         return None
     if s == "Condiments Selection\n葱，香菜，榨菜丝，老干妈，生抽，醋":
@@ -36,10 +38,9 @@ def menu_item_fix(s):
     )
 
 
-rows = list(ws.iter_rows())
-
-
-def parse_meal_table(rows, initrow, t):
+def parse_meal_table(
+    rows: list[Any], initrow: int, t: list[str]
+) -> dict[str, dict[str, list[str]]]:
     assert rows[initrow + 1][1].value is None
 
     igroups = []
@@ -53,7 +54,7 @@ def parse_meal_table(rows, initrow, t):
             break
     wgroups = dict(zip(igroups + [i], t + [None]))
 
-    ret = {}
+    ret: dict[str, dict[str, list[str]]] = {}
     kmap = {}
     for k in range(2, 7):
         ret[rows[initrow + 1][k].value[0:3]] = {}
@@ -63,6 +64,7 @@ def parse_meal_table(rows, initrow, t):
     wgroupskeys = list(wgroups.keys())
     while i < len(wgroupskeys) - 1:
         wgroup = wgroups[wgroupskeys[i]]
+        assert wgroup is not None
         for km in ret:
             ret[km][wgroup] = []
         for j in range(wgroupskeys[i], wgroupskeys[i + 1]):
@@ -75,9 +77,10 @@ def parse_meal_table(rows, initrow, t):
     return ret
 
 
-def parse_menus(filename):
+def parse_menus(filename: str) -> dict[str, dict[str, dict[str, list[str]]]]:
     wb = openpyxl.load_workbook(filename=filename)
     ws = wb["菜单"]
+    rows = list(ws.iter_rows())
 
     final = {}
 
