@@ -37,5 +37,5 @@ then
 	printf 'Running sendmail.py\n' >&2
 	python3 -m sjdbmk.sendmail --date="$TARGET" || exit 4
 else
-	printf 'Not sending this bulletin. You may run sendmail manually instead:\npython3 sendmail.py --date=%s\n' "$TARGET" >&2
+	printf 'Not sending this bulletin. You may run sendmail manually instead:\npython3 -m sjdbmk.sendmail --date=%s\n' "$TARGET" >&2
 fi
