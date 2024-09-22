@@ -30,7 +30,7 @@ from jinja2 import Template, StrictUndefined
 def main(date: str, config: ConfigParser) -> None:
 
     with open(
-        os.path.join(config["templates"]["directory"], config["templates"]["tmp"]),
+        os.path.join(config["templates"]["directory"], config["templates"]["main"]),
         "r",
         encoding="utf-8",
     ) as template_file:
