@@ -314,6 +314,7 @@
 					{% endif %}
 				</td>
 			</tr>
+			{% if today_dinner %}
 			<tr class="today">
 				<th scope="row">{{weekdays_abbrev[0]}}<br/>Dinner</th>
 				<td>
@@ -379,6 +380,7 @@
 					{% endif %}
 				</td>
 			</tr>
+			{% endif %}
 		</tbody>
 	</table>
 	{% if days_after_this == -1 %}

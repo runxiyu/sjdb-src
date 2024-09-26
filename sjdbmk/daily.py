@@ -136,10 +136,13 @@ def generate(
 
     breakfast_today = week_data["menu"]["Breakfast"][weekday_short]
     lunch_today = week_data["menu"]["Lunch"][weekday_short]
-    dinner_today = week_data["menu"]["Dinner"][weekday_short]
+    try:
+        dinner_today = week_data["menu"]["Dinner"][weekday_short]
+    except KeyError:
+        dinner_today = None
     try:
         breakfast_tomorrow = week_data["menu"]["Breakfast"][next_weekday_short]
-    except IndexError:
+    except KeyError:
         breakfast_tomorrow = None
     try:
         snack_morning = week_data["snacks"][0][days_since_beginning]

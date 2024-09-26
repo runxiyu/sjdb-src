@@ -54,6 +54,7 @@ def sendmail(
     content_type: str = "HTML",
     importance: str = "Normal",
     reply_to: Optional[str] = None,
+    respect_when: bool = True,
 ) -> str:
     data = {
         "subject": subject,
@@ -64,7 +65,7 @@ def sendmail(
         "bccRecipients": [{"emailAddress": {"address": a}} for a in bcc],
     }
 
-    if when is not None:
+    if when is not None and respect_when:
         if when.tzinfo is None:
             raise TypeError("Naive datetimes are no longer supported")
         utcwhen = when.astimezone(datetime.timezone.utc)
@@ -129,6 +130,12 @@ def main() -> None:
         action="store_true",
         help="Reply to the previous bulletin when sending (BROKEN)",
     )
+    parser.add_argument(
+        "-n",
+        "--now",
+        action="store_true",
+        help="Send the bulletin right now, instead of at the right time",
+    )
     parser.add_argument("--config", default="config.ini", help="path to the configuration file")
     args = parser.parse_args()
     config = ConfigParser()
@@ -166,6 +173,7 @@ def main() -> None:
             ),
             content_type="HTML",
             importance="Normal",
+            respect_when=(not args.now),
         )
         assert a
         with open("last-a.txt", "w") as fd:
@@ -185,6 +193,7 @@ def main() -> None:
             ),
             content_type="HTML",
             importance="Normal",
+            respect_when=(not args.now),
         )
         assert b
         with open("last-b.txt", "w") as fd:
@@ -208,6 +217,7 @@ def main() -> None:
             content_type="HTML",
             importance="Normal",
             reply_to=last_a,
+            respect_when=(not args.now),
         )
         assert a
         with open("last-a.txt", "w") as fd:
@@ -230,6 +240,7 @@ def main() -> None:
             content_type="HTML",
             importance="Normal",
             reply_to=last_b,
+            respect_when=(not args.now),
         )
         assert b
         with open("last-b.txt", "w") as fd:
