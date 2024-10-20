@@ -81,7 +81,7 @@ def extract_community_time(prs: pptx.presentation.Presentation, community_time_p
                     t = "Whole School Assembly"
                 elif "tutor group check-in" in t.lower() or "follow up day" in t.lower() or "open session for tutor and tutee" in t.lower():
                     t = "Tutor Time"
-                res[r][c] = t
+                res[r][c] = t.replace("（", " (").replace("）", ") ").replace("  ", " ")
                 if cell.is_merge_origin:
                     for sh in range(cell.span_height):
                         for sw in range(cell.span_width):
