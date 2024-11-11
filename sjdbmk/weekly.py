@@ -91,6 +91,7 @@ def generate(
         the_week_ahead_aod_page_number,
     )
     menu_data = menu.parse_menus(datetime_target)
+    snack_data = menu.parse_snacks(datetime_target)
 
     logger.info("Packing final data")
     final_data = {
@@ -98,6 +99,7 @@ def generate(
         "community_time": community_time,
         "aods": aods,
         "menu": menu_data,
+        "snacks": snack_data,
     }
 
     logger.info("Dumping data to: %s" % output_filename)

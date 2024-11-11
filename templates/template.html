@@ -62,15 +62,7 @@
 	<br />
 	{{weekday_chinese}}快乐！感谢您支持每日公告。请注意，每日公告只是<a href="{{the_week_ahead_url}}">每周展望</a>的补充，并不代表官方信息。我们不对信息的准确性和有效性承担责任。请填写相应表格以<a href="https://ykps.runxiyu.org/sjdb/submit">分享灵感</a>或<a href="https://ykps.runxiyu.org/sjdb/unsub">退订</a>。
 	</p>
-
-	<h2>Daily Bulletin Project Info 每日公告项目信息</h2>
-	<p>
-	The Daily Bulletin project has returned. Last year, it was maintained by <a href="https://albertttan.github.io">Albert Tan</a>, who departed the school. The bulletin is now maintained by <a href="https://runxiyu.org">Runxi Yu</a> with the <a href="https://git.runxiyu.org/ykps/sjdb-src.git/about">automated build system</a> (<a href="https://github.com/runxiyu/sjdb-src">GitHub</a>).
-	</p>
-	<p>
-	Note: This version of the Daily Bulletin is still in beta. Importantly, this version <em>has not been approved officially</em> by the school administration, and is unfit for wider distribution. Only a number of people who the maintainer is sufficiently familiar with are receiving the bulletins currently.
-	</p>
-
+	
 	{% if community_time %}
 	<h2>Community Time 午休时间</h2>
 	<table id="community_time">
@@ -176,6 +168,13 @@
 		{% endif %}
 	</table>
 	{% endif %}
+	
+	<h2>Calendar Events 日历事件</h2>
+	<p>
+	We are planning to include content from the Songjiang Shared Calendar here, but the APIs are rather cumbersome to work with. This is a placeholder.
+	</p>
+
+
 	<h2>Delicious Dinings 今日佳肴</h2>
 	<table id="menu">
 		<colgroup>
@@ -251,6 +250,12 @@
 						{% endfor %}
 					</ul>
 					{% endif %}
+					{% if today_snack["Morning"] %}
+					<span class="wtitle">Morning Snack</span>
+					<ul>
+						<li>{{ today_snack["Morning"] }}</li>
+					</ul>
+					{% endif %}
 				</td>
 			</tr>
 			<tr class="today">
@@ -314,6 +319,12 @@
 						{% for m in today_lunch["Dessert/Fruit/Drink"] %}
 						<li>{{ m }}</li>
 						{% endfor %}
+					</ul>
+					{% endif %}
+					{% if today_snack["Afternoon"] %}
+					<span class="wtitle">Afternoon Snack</span>
+					<ul>
+						<li>{{ today_snack["Afternoon"] }}</li>
 					</ul>
 					{% endif %}
 				</td>
@@ -382,15 +393,17 @@
 						{% endfor %}
 					</ul>
 					{% endif %}
+					{% if today_snack["Evening"] %}
+					<span class="wtitle">Evening Snack</span>
+					<ul>
+						<li>{{ today_snack["Evening"] }}</li>
+					</ul>
+					{% endif %}
 				</td>
 			</tr>
 			{% endif %}
 		</tbody>
 	</table>
-	{% if days_after_this == -1 %}
-	<p class="ps">Note: The machine-readable menus emailed to the Daily Bulletin staff do not contain end-of-week dinner and weekend meals.</p>
-	{% endif %}
-	<p class="ps">I am aware that the menu currently looks a bit ugly; I am not experienced in webpage layout at all. HTML/CSS experts wanted!</p>
 
 	<h2>Daily Inspiration 每日灵感</h2>
 	{% if inspiration_type %}
@@ -416,7 +429,7 @@
 	</p>
 	{% endif %}
 	<p>
-	(Actually, we have inspirations, the system is just kind-of broken and I&rsquo;m a bit too busy to fix it for now.)
+	(Daily inspirations are still broken. Sorry!)
 	</p>
 
 	{% if on_this_day_html_en or on_this_day_html_zh %}

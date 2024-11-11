@@ -170,9 +170,9 @@ def parse_snacks(datetime_target: datetime.datetime) -> dict[str, list[str]]:
         raise ValueError("snacks not found")
     i += 2
     return {
-        "Morning": row[i][2:7],
-        "Afternoon": row[i + 1][2:7],
-        "Evening": row[i + 2][2:7],
+        "Morning": [a.value for a in rows[i][2:7]],
+        "Afternoon": [a.value for a in rows[i + 1][2:7]],
+        "Evening": [a.value for a in rows[i + 2][2:7]],
     }
 
     #    parse_meal_table(rows, i)
