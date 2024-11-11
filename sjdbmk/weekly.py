@@ -73,10 +73,23 @@ def generate(
     output_filename = "week-%s.json" % datetime_target.strftime("%Y%m%d")
     logger.info("Output filename: %s" % output_filename)
 
-    token = common.acquire_token(graph_client_id, graph_authority, graph_username, graph_password, graph_scopes)
+    token = common.acquire_token(
+        graph_client_id, graph_authority, graph_username, graph_password, graph_scopes
+    )
     twa.download_or_report_the_week_ahead(token, datetime_target, the_week_ahead_url)
-    menu.download_or_report_menu(token, datetime_target, weekly_menu_query_string, weekly_menu_sender, weekly_menu_subject_regex, weekly_menu_subject_regex_four_groups)
-    community_time, aods = twa.parse_the_week_ahead(datetime_target, the_week_ahead_community_time_page_number, the_week_ahead_aod_page_number)
+    menu.download_or_report_menu(
+        token,
+        datetime_target,
+        weekly_menu_query_string,
+        weekly_menu_sender,
+        weekly_menu_subject_regex,
+        weekly_menu_subject_regex_four_groups,
+    )
+    community_time, aods = twa.parse_the_week_ahead(
+        datetime_target,
+        the_week_ahead_community_time_page_number,
+        the_week_ahead_aod_page_number,
+    )
     menu_data = menu.parse_menus(datetime_target)
 
     logger.info("Packing final data")
@@ -101,7 +114,9 @@ def main() -> None:
         default=None,
         help="the start of the week to generate for, in local time, YYYY-MM-DD; defaults to next Monday",
     )
-    parser.add_argument("--config", default="config.ini", help="path to the configuration file")
+    parser.add_argument(
+        "--config", default="config.ini", help="path to the configuration file"
+    )
     args = parser.parse_args()
 
     if args.date:
@@ -117,7 +132,9 @@ def main() -> None:
         datetime_target_aware = datetime_target_naive.replace(tzinfo=tzinfo)
     else:
         datetime_current_aware = datetime.datetime.now(tz=tzinfo)
-        datetime_target_aware = datetime_current_aware + datetime.timedelta(days=((-datetime_current_aware.weekday()) % 7))
+        datetime_target_aware = datetime_current_aware + datetime.timedelta(
+            days=((-datetime_current_aware.weekday()) % 7)
+        )
     logger.info("Generating for %s" % datetime_target_aware.strftime("%Y-%m-%d %Z"))
 
     build_path = config["general"]["build_path"]
@@ -125,14 +142,20 @@ def main() -> None:
     os.chdir(build_path)
 
     the_week_ahead_url = config["the_week_ahead"]["file_url"]
-    the_week_ahead_community_time_page_number = int(config["the_week_ahead"]["community_time_page_number"])
+    the_week_ahead_community_time_page_number = int(
+        config["the_week_ahead"]["community_time_page_number"]
+    )
     the_week_ahead_aod_page_number = int(config["the_week_ahead"]["aod_page_number"])
 
     weekly_menu_query_string = config["weekly_menu"]["query_string"]
     weekly_menu_sender = config["weekly_menu"]["sender"]
     weekly_menu_subject_regex = config["weekly_menu"]["subject_regex"]
-    weekly_menu_subject_regex_four_groups_raw = config["weekly_menu"]["subject_regex_four_groups"].split(" ")
-    weekly_menu_subject_regex_four_groups = tuple([int(z) for z in weekly_menu_subject_regex_four_groups_raw])
+    weekly_menu_subject_regex_four_groups_raw = config["weekly_menu"][
+        "subject_regex_four_groups"
+    ].split(" ")
+    weekly_menu_subject_regex_four_groups = tuple(
+        [int(z) for z in weekly_menu_subject_regex_four_groups_raw]
+    )
     assert len(weekly_menu_subject_regex_four_groups) == 4
     # weekly_menu_dessert_page_number = config["weekly_menu"]["dessert_page_number"]
 

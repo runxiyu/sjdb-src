@@ -28,8 +28,12 @@ from . import common
 logger = logging.getLogger(__name__)
 
 
-def download_or_report_the_week_ahead(token: str, datetime_target: datetime.datetime, the_week_ahead_url: str) -> None:
-    the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime("%Y%m%d")
+def download_or_report_the_week_ahead(
+    token: str, datetime_target: datetime.datetime, the_week_ahead_url: str
+) -> None:
+    the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime(
+        "%Y%m%d"
+    )
     if not os.path.isfile(the_week_ahead_filename):
         logger.info("Downloading The Week Ahead to %s" % the_week_ahead_filename)
         common.download_share_url(token, the_week_ahead_url, the_week_ahead_filename)
@@ -38,9 +42,15 @@ def download_or_report_the_week_ahead(token: str, datetime_target: datetime.date
         logger.info("The Week Ahead already exists at %s" % the_week_ahead_filename)
 
 
-def parse_the_week_ahead(datetime_target: datetime.datetime, the_week_ahead_community_time_page_number: int, the_week_ahead_aod_page_number: int) -> tuple[list[list[str]], list[str]]:
+def parse_the_week_ahead(
+    datetime_target: datetime.datetime,
+    the_week_ahead_community_time_page_number: int,
+    the_week_ahead_aod_page_number: int,
+) -> tuple[list[list[str]], list[str]]:
     logger.info("Parsing The Week Ahead")
-    the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime("%Y%m%d")
+    the_week_ahead_filename = "the_week_ahead-%s.pptx" % datetime_target.strftime(
+        "%Y%m%d"
+    )
     the_week_ahead_presentation = pptx.Presentation(the_week_ahead_filename)
     community_time = extract_community_time(
         the_week_ahead_presentation,
@@ -50,7 +60,9 @@ def parse_the_week_ahead(datetime_target: datetime.datetime, the_week_ahead_comm
     return community_time, aods
 
 
-def extract_community_time(prs: pptx.presentation.Presentation, community_time_page_number: int) -> list[list[str]]:
+def extract_community_time(
+    prs: pptx.presentation.Presentation, community_time_page_number: int
+) -> list[list[str]]:
     slide = prs.slides[community_time_page_number]
     for shape in slide.shapes:
         if not shape.has_table:
@@ -62,9 +74,13 @@ def extract_community_time(prs: pptx.presentation.Presentation, community_time_p
     row_count = len(tbl.rows)
     col_count = len(tbl.columns)
     if col_count not in [4, 5]:
-        raise ValueError("Community time parsing: The Week Ahead community time table does not have 4 or 5 columns")
+        raise ValueError(
+            "Community time parsing: The Week Ahead community time table does not have 4 or 5 columns"
+        )
     if col_count == 4:
-        logger.warning("Community time warning: only four columns found, assuming that Y12 has graduated")
+        logger.warning(
+            "Community time warning: only four columns found, assuming that Y12 has graduated"
+        )
 
     res = [["" for c in range(col_count)] for r in range(row_count)]
 
@@ -79,7 +95,11 @@ def extract_community_time(prs: pptx.presentation.Presentation, community_time_p
                 t = t.strip()
                 if "whole school assembly" in t.lower():
                     t = "Whole School Assembly"
-                elif "tutor group check-in" in t.lower() or "follow up day" in t.lower() or "open session for tutor and tutee" in t.lower():
+                elif (
+                    "tutor group check-in" in t.lower()
+                    or "follow up day" in t.lower()
+                    or "open session for tutor and tutee" in t.lower()
+                ):
                     t = "Tutor Time"
                 res[r][c] = t.replace("（", " (").replace("）", ") ").replace("  ", " ")
                 if cell.is_merge_origin:
@@ -90,7 +110,9 @@ def extract_community_time(prs: pptx.presentation.Presentation, community_time_p
     return [x[1:] for x in res[1:]]
 
 
-def extract_aods(prs: pptx.presentation.Presentation, aod_page_number: int) -> list[str]:
+def extract_aods(
+    prs: pptx.presentation.Presentation, aod_page_number: int
+) -> list[str]:
     slide = prs.slides[aod_page_number]
     aods = ["", "", "", ""]
     for shape in slide.shapes:
@@ -111,8 +133,12 @@ def extract_aods(prs: pptx.presentation.Presentation, aod_page_number: int) -> l
                 elif day == "thursday":
                     aods[3] = aod
             if not all(aods):
-                raise common.DailyBulletinError("The Week Ahead doesn't include all AOD days, or the formatting is borked")
+                raise common.DailyBulletinError(
+                    "The Week Ahead doesn't include all AOD days, or the formatting is borked"
+                )
             return aods
-    raise common.DailyBulletinError("The Week Ahead's doesn't even include an AOD for Monday")
+    raise common.DailyBulletinError(
+        "The Week Ahead's doesn't even include an AOD for Monday"
+    )
     # TODO: this is one of those places where Monday is *expected* to be the first day.
     # TODO: revamp this. this is ugly!

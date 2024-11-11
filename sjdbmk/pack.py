@@ -34,10 +34,14 @@ def main(date: str, config: ConfigParser) -> None:
         "r",
         encoding="utf-8",
     ) as template_file:
-        template = Template(template_file.read(), undefined=StrictUndefined, autoescape=True)
+        template = Template(
+            template_file.read(), undefined=StrictUndefined, autoescape=True
+        )
 
     with open(
-        os.path.join(config["general"]["build_path"], "day-" + date.replace("-", "") + ".json"),
+        os.path.join(
+            config["general"]["build_path"], "day-" + date.replace("-", "") + ".json"
+        ),
         "r",
         encoding="utf-8",
     ) as fd:
@@ -48,7 +52,11 @@ def main(date: str, config: ConfigParser) -> None:
     #
     # data = data | extra_data
 
-    template.stream(**data).dump(os.path.join(config["general"]["build_path"], "sjdb-%s.html" % date.replace("-", "")))
+    template.stream(**data).dump(
+        os.path.join(
+            config["general"]["build_path"], "sjdb-%s.html" % date.replace("-", "")
+        )
+    )
 
     # FIXME: Escape the dangerous HTML!
 
@@ -64,14 +72,18 @@ if __name__ == "__main__":
             # TODO: Verify validity of date
             # TODO: Verify consistency of date elsewhere
         )
-        parser.add_argument("--config", default="config.ini", help="path to the configuration file")
+        parser.add_argument(
+            "--config", default="config.ini", help="path to the configuration file"
+        )
         args = parser.parse_args()
         config = ConfigParser()
         config.read(args.config)
         if args.date:
             date = args.date
         else:
-            now = datetime.datetime.now(zoneinfo.ZoneInfo(config["general"]["timezone"]))
+            now = datetime.datetime.now(
+                zoneinfo.ZoneInfo(config["general"]["timezone"])
+            )
             date = (now + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
         logging.info("Generating for day %s" % date)
         # main(date, config)

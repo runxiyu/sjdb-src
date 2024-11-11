@@ -33,7 +33,9 @@ from . import common
 # logging.getLogger("msal").setLevel(logging.INFO)
 
 
-def acquire_token_interactive(app: msal.PublicClientApplication, config: ConfigParser) -> str:
+def acquire_token_interactive(
+    app: msal.PublicClientApplication, config: ConfigParser
+) -> str:
     result = app.acquire_token_interactive(
         config["credentials"]["scope"].split(" "),
         login_hint=config["credentials"]["username"],
@@ -42,10 +44,14 @@ def acquire_token_interactive(app: msal.PublicClientApplication, config: ConfigP
     if "access_token" in result:
         assert isinstance(result["access_token"], str)
         return result["access_token"]
-    raise ValueError("Authentication error while trying to interactively acquire a token")
+    raise ValueError(
+        "Authentication error while trying to interactively acquire a token"
+    )
 
 
-def test_login(app: msal.PublicClientApplication, config: ConfigParser) -> dict[str, Any]:
+def test_login(
+    app: msal.PublicClientApplication, config: ConfigParser
+) -> dict[str, Any]:
     result = app.acquire_token_by_username_password(
         config["credentials"]["username"],
         config["credentials"]["password"],
@@ -69,7 +75,9 @@ def test_login(app: msal.PublicClientApplication, config: ConfigParser) -> dict[
 def main() -> None:
     config = ConfigParser()
     if len(sys.argv) != 2 or not os.path.isfile(sys.argv[1]):
-        raise common.DailyBulletinError("You must specify a configuration file as the only argument")
+        raise common.DailyBulletinError(
+            "You must specify a configuration file as the only argument"
+        )
     config.read(sys.argv[1])
     app = msal.PublicClientApplication(
         config["credentials"]["client_id"],

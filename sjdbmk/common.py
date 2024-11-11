@@ -38,7 +38,9 @@ def acquire_token(
         graph_client_id,
         authority=graph_authority,
     )
-    result = app.acquire_token_by_username_password(graph_username, graph_password, scopes=graph_scopes)
+    result = app.acquire_token_by_username_password(
+        graph_username, graph_password, scopes=graph_scopes
+    )
 
     if "access_token" in result:
         assert isinstance(result["access_token"], str)
@@ -62,24 +64,25 @@ def search_mail(token: str, query_string: str) -> list[dict[str, Any]]:
             ]
         },
         timeout=20,
-    ).json()["value"][
-        0
-    ]["hitsContainers"][
-        0
-    ]["hits"]
+    ).json()["value"][0]["hitsContainers"][0]["hits"]
     assert isinstance(hits, list)
     assert isinstance(hits[0], dict)
     return hits
 
 
 def encode_sharing_url(url: str) -> str:
-    return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip("=")
+    return "u!" + base64.urlsafe_b64encode(url.encode("utf-8")).decode("ascii").rstrip(
+        "="
+    )
 
 
-def download_share_url(token: str, url: str, local_filename: str, chunk_size: int = 65536) -> None:
+def download_share_url(
+    token: str, url: str, local_filename: str, chunk_size: int = 65536
+) -> None:
 
     download_direct_url = requests.get(
-        "https://graph.microsoft.com/v1.0/shares/%s/driveItem" % encode_sharing_url(url),
+        "https://graph.microsoft.com/v1.0/shares/%s/driveItem"
+        % encode_sharing_url(url),
         headers={"Authorization": "Bearer " + token},
         timeout=20,
     ).json()["@microsoft.graph.downloadUrl"]
@@ -98,9 +101,14 @@ def download_share_url(token: str, url: str, local_filename: str, chunk_size: in
             fd.flush()
 
 
-def filter_mail_results_by_sender(original: Iterable[dict[str, Any]], sender: str) -> Iterator[dict[str, Any]]:
+def filter_mail_results_by_sender(
+    original: Iterable[dict[str, Any]], sender: str
+) -> Iterator[dict[str, Any]]:
     for hit in original:
-        if hit["resource"]["sender"]["emailAddress"]["address"].lower() == sender.lower():
+        if (
+            hit["resource"]["sender"]["emailAddress"]["address"].lower()
+            == sender.lower()
+        ):
             yield hit
 
 

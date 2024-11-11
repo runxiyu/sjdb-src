@@ -37,10 +37,18 @@ def menu_item_fix(s: str) -> Optional[str]:
         return None
     if s == "Condiments Selection\n葱，香菜，榨菜丝，老干妈，生抽，醋":
         return None
-    return s.strip().replace("Biscuit /", "Biscuit/").replace("Juice /", "Juice/").replace(" \n", "\n").replace("\n ", "\n")
+    return (
+        s.strip()
+        .replace("Biscuit /", "Biscuit/")
+        .replace("Juice /", "Juice/")
+        .replace(" \n", "\n")
+        .replace("\n ", "\n")
+    )
 
 
-def parse_meal_table(rows: list[Any], initrow: int, t: list[str]) -> dict[str, dict[str, list[str]]]:
+def parse_meal_table(
+    rows: list[Any], initrow: int, t: list[str]
+) -> dict[str, dict[str, list[str]]]:
     assert rows[initrow + 1][1].value is None
 
     igroups = []
@@ -77,7 +85,9 @@ def parse_meal_table(rows: list[Any], initrow: int, t: list[str]) -> dict[str, d
     return ret
 
 
-def parse_menus(datetime_target: datetime.datetime) -> dict[str, dict[str, dict[str, list[str]]]]:
+def parse_menus(
+    datetime_target: datetime.datetime,
+) -> dict[str, dict[str, dict[str, list[str]]]]:
     logger.info("Parsing menus")
     filename = "menu-%s.xlsx" % datetime_target.strftime("%Y%m%d")
     wb = openpyxl.load_workbook(filename=filename)
@@ -139,6 +149,37 @@ def parse_menus(datetime_target: datetime.datetime) -> dict[str, dict[str, dict[
     return final
 
 
+def parse_snacks(datetime_target: datetime.datetime) -> dict[str, list[str]]:
+    logger.info("Parsing snacks")
+    filename = "menu-%s.xlsx" % datetime_target.strftime("%Y%m%d")
+    wb = openpyxl.load_workbook(filename=filename)
+    ws = wb["菜单"]
+    rows = list(ws.iter_rows())
+
+    final = {}
+
+    i = -1
+    while i < len(rows) - 1:
+        i += 1
+        row = rows[i]
+        if not isinstance(row[1].value, str):
+            continue
+        elif "Students Snack" in row[1].value:
+            break
+    else:
+        raise ValueError("snacks not found")
+    i += 2
+    return {
+        "Morning": row[i][2:7],
+        "Afternoon": row[i + 1][2:7],
+        "Evening": row[i + 2][2:7],
+    }
+
+    #    parse_meal_table(rows, i)
+
+    return final
+
+
 def download_menu(
     token: str,
     datetime_target: datetime.datetime,
@@ -156,11 +197,16 @@ def download_menu(
         weekly_menu_subject_regex_four_groups,
     ):
         try:
-            subject_1st_month = datetime.datetime.strptime(matched_groups[0], "%b").month  # issues here are probably locales
+            subject_1st_month = datetime.datetime.strptime(
+                matched_groups[0], "%b"
+            ).month  # issues here are probably locales
             subject_1st_day = int(matched_groups[1])
         except ValueError:
             raise ValueError(hit["resource"]["subject"], matched_groups[0])
-        if subject_1st_month == datetime_target.month and subject_1st_day == datetime_target.day:
+        if (
+            subject_1st_month == datetime_target.month
+            and subject_1st_day == datetime_target.day
+        ):
             break
     else:
         raise ValueError("No menu email found")
@@ -190,7 +236,14 @@ def download_menu(
         raise ValueError("No proper attachment found in email")
 
 
-def download_or_report_menu(token: str, datetime_target: datetime.datetime, weekly_menu_query_string: str, weekly_menu_sender: str, weekly_menu_subject_regex: str, weekly_menu_subject_regex_four_groups: tuple[int, int, int, int]) -> None:
+def download_or_report_menu(
+    token: str,
+    datetime_target: datetime.datetime,
+    weekly_menu_query_string: str,
+    weekly_menu_sender: str,
+    weekly_menu_subject_regex: str,
+    weekly_menu_subject_regex_four_groups: tuple[int, int, int, int],
+) -> None:
     menu_filename = "menu-%s.xlsx" % datetime_target.strftime("%Y%m%d")
     if not (os.path.isfile(menu_filename)):
         logger.info("Menu not found, downloading")
