@@ -169,10 +169,14 @@ def parse_snacks(datetime_target: datetime.datetime) -> dict[str, list[str]]:
     else:
         raise ValueError("snacks not found")
     i += 2
+    try:
+        ev = [a.value for a in rows[i + 2][2:7]]
+    except (IndexError, KeyError):
+        ev = ""
     return {
         "Morning": [a.value for a in rows[i][2:7]],
         "Afternoon": [a.value for a in rows[i + 1][2:7]],
-        "Evening": [a.value for a in rows[i + 2][2:7]],
+        "Evening": ev,
     }
 
     #    parse_meal_table(rows, i)
