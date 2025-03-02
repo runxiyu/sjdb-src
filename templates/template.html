@@ -169,12 +169,6 @@
 	</table>
 	{% endif %}
 	
-	<h2>Calendar Events 日历事件</h2>
-	<p>
-	We are planning to include content from the Songjiang Shared Calendar here, but the APIs are rather cumbersome to work with. This is a placeholder.
-	</p>
-
-
 	<h2>Delicious Dinings 今日佳肴</h2>
 	<table id="menu">
 		<colgroup>
@@ -406,30 +400,8 @@
 	</table>
 
 	<h2>Daily Inspiration 每日灵感</h2>
-	{% if inspiration_type %}
-		{% if inspiration_type == "text" %}
-		<pre>{{ inspiration_text }}</pre>
-		{% elif inspiration_type == "media" %}
-		<img src="data:{{inspiration_image_mime}};base64,{{ inspiration_image_data }}" />
-			{% if inspiration_text %}
-			<pre>{{ inspiration_text }}</pre>
-			{% endif %}
-		{% elif inspiration_type == "canteen" %}
-		<pre>{{ inspiration_text }}</pre>
-		{% endif %}
-		{% if inspiration_shared_by %}
-		<p><cite>Shared by {{inspiration_shared_by}}.<br/>由{{inspiration_shared_by}}分享。</cite></p></p>
-		{% else %}
-		<p><cite>Shared anonymously.<br />匿名分享。</cite></p>
-		{% endif %}
-	{% else %}
 	<p>
-	Unfortunately, there is no inspiration today.
-	Please feel free to <a href="https://ykps.runxiyu.org/sjdb/submit">submit one</a>.
-	</p>
-	{% endif %}
-	<p>
-	(Daily inspirations are still broken. Sorry!)
+	Oops
 	</p>
 
 	{% if on_this_day_html_en or on_this_day_html_zh %}

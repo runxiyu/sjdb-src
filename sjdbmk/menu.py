@@ -102,7 +102,7 @@ def parse_menus(
         row = rows[i]
         if not isinstance(row[1].value, str):
             continue
-        elif "BREAKFAST" in row[1].value:
+        elif "BREAKFAST" in row[1].value.upper():
             final["Breakfast"] = parse_meal_table(
                 rows,
                 i,
@@ -115,7 +115,7 @@ def parse_menus(
                     "Fruit/Drink",
                 ],
             )
-        elif "LUNCH" in row[1].value:
+        elif "LUNCH" in row[1].value.upper():
             final["Lunch"] = parse_meal_table(
                 rows,
                 i,
@@ -129,7 +129,7 @@ def parse_menus(
                     "Dessert/Fruit/Drink",
                 ],
             )
-        elif "DINNER" in row[1].value:
+        elif "DINNER" in row[1].value.upper():
             final["Dinner"] = parse_meal_table(
                 rows,
                 i,

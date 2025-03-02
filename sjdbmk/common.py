@@ -80,12 +80,18 @@ def download_share_url(
     token: str, url: str, local_filename: str, chunk_size: int = 65536
 ) -> None:
 
-    download_direct_url = requests.get(
+    x = requests.get(
         "https://graph.microsoft.com/v1.0/shares/%s/driveItem"
         % encode_sharing_url(url),
         headers={"Authorization": "Bearer " + token},
         timeout=20,
-    ).json()["@microsoft.graph.downloadUrl"]
+    ).json()
+
+    try:
+        download_direct_url = x["@microsoft.graph.downloadUrl"]
+    except KeyError:
+        print(x)
+        raise ValueError("Download URL not found")
 
     with requests.get(
         download_direct_url,
